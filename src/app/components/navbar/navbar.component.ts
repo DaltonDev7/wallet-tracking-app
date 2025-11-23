@@ -1,5 +1,7 @@
-import { Component, signal } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, ElementRef, HostListener, OnInit, signal, ViewChild } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { User } from 'firebase/auth';
 
 @Component({
   selector: 'app-navbar',
@@ -8,7 +10,23 @@ import { RouterModule } from '@angular/router';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
+
+  user = signal<User | null>(null);
+  isUserMenuOpen = signal(false);
+  @ViewChild('userMenu') userMenuRef!: ElementRef;
+  
+  constructor(private authServices: AuthService, private router: Router) { }
+
+  ngOnInit(): void {
+    this.authServices.user$.subscribe((u) => {
+      this.user.set(u);
+
+      console.log("Usuario completo:", u);
+      console.log("URL de la foto:", u?.photoURL);
+    });
+  }
+
 
   readonly isMenuOpen = signal(false);
   readonly isNewMovementOpen = signal(false);
@@ -18,11 +36,34 @@ export class NavbarComponent {
     this.isMenuOpen.update((v) => !v);
   }
 
+  toggleUserMenu() {
+    this.isUserMenuOpen.update((v) => !v);
+  }
 
-  onLogout() {
+  async onLogout() {
     // Aquí luego llamas a tu servicio de auth
     // this.authService.logout();
     console.log('Cerrar sesión');
+    await this.authServices.logout().then(() => {
+      this.router.navigate([''])
+    })
+
   }
+
+
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (!this.userMenuRef) return;
+
+    const clickedInside = this.userMenuRef.nativeElement.contains(target);
+
+    if (!clickedInside) {
+      this.isUserMenuOpen.set(false);
+    }
+  }
+
 
 }

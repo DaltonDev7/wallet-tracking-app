@@ -1,5 +1,5 @@
 export enum routesEnum{
-    category = "category",
+    category = "categories",
     signIn = "sign-in",
     signUp = "signUp",
 }
