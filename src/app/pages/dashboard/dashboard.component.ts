@@ -5,11 +5,13 @@ import { RouterOutlet } from '@angular/router';
 import { Movement, MovementFormValue } from '../../core/interfaces/movements';
 import { CreateMovementModalComponent } from '../../modals/create-movement-modal/create-movement-modal.component';
 import { Combobox } from '../../core/interfaces/combobox';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartConfiguration, ChartOptions } from 'chart.js';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, CurrencyPipe, CreateMovementModalComponent],
+  imports: [CommonModule, FormsModule, DatePipe, CurrencyPipe, CreateMovementModalComponent, NgChartsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -65,9 +67,9 @@ export class DashboardComponent implements OnInit {
   movements: Movement[] = [];        // aquí luego vienen los datos de Firebase
   filteredMovements: Movement[] = [];
 
-  totalIncome = 0;
-  totalExpense = 0;
-  remaining = 0;
+  // totalIncome = 0;
+  // totalExpense = 0;
+  // remaining = 0;
 
   searchTerm = '';
 
@@ -133,5 +135,102 @@ export class DashboardComponent implements OnInit {
   onDeleteMovement(movement: Movement) {
     // abrir modal de confirmación y borrar en Firebase
   }
+
+
+
+
+
+
+
+
+  totalIncome = 35000;
+  totalExpense = 21000;
+  remaining = this.totalIncome - this.totalExpense;
+
+
+  // --------- DATA DUMMY PARA GRÁFICAS ----------
+
+  // Distribución de gastos por categoría (solo gastos)
+  expenseDoughnutData: ChartConfiguration<'doughnut'>['data'] = {
+    labels: ['Comida', 'Transporte', 'Servicios', 'Ocio', 'Otros'],
+    datasets: [
+      {
+        data: [8000, 3000, 4000, 2000, 4000], // RD$ por categoría
+        backgroundColor: [
+          '#0EA5E9', // sky-500
+          '#22C55E', // emerald-500
+          '#F97316', // orange-500
+          '#6366F1', // indigo-500
+          '#E11D48', // rose-600
+        ],
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  expenseDoughnutOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    cutout: '60%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: { size: 11 },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const value = ctx.parsed;
+            const total = (ctx.dataset.data as number[]).reduce(
+              (acc, n) => acc + n,
+              0
+            );
+            const percent = ((value / total) * 100).toFixed(1);
+            const label = ctx.label || 'Categoría';
+            return `${label}: RD$ ${value.toLocaleString()} (${percent}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  // Ingresos vs. gastos por categoría (ejemplo)
+  incomeExpenseBarData: ChartConfiguration<'bar'>['data'] = {
+    labels: ['Salario', 'Freelance', 'Otros'],
+    datasets: [
+      {
+        label: 'Ingresos',
+        data: [25000, 8000, 2000],
+        backgroundColor: '#22C55E', // emerald-500
+      },
+      {
+        label: 'Gastos',
+        data: [12000, 2000, 7000],
+        backgroundColor: '#E11D48', // rose-600
+      },
+    ],
+  };
+
+  incomeExpenseBarOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { font: { size: 11 } },
+      },
+    },
+    scales: {
+      x: {
+        ticks: { font: { size: 11 } },
+      },
+      y: {
+        ticks: {
+          font: { size: 11 },
+          callback: (value) => 'RD$ ' + value,
+        },
+      },
+    },
+  };
 
 }

@@ -37,15 +37,6 @@ export class CreateMovementModalComponent {
     });
   }
 
-  // Cerrar con ESC
-  @HostListener('document:keydown.escape', ['$event'])
-  onEsc(event: KeyboardEvent) {
-    if (this.open) {
-      event.preventDefault();
-      this.handleClose();
-    }
-  }
-
   handleClose() {
     this.form.reset()
     this.close.emit();
