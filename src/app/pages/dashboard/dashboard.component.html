@@ -1,0 +1,234 @@
+
+<div class="min-h-screen bg-slate-50">
+  <div class="max-w-6xl mx-auto px-4 lg:px-6 py-6 lg:py-8">
+
+    <!-- Header -->
+    <header class="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-slate-800">
+          Resumen financiero
+        </h1>
+        <p class="text-sm text-slate-500">
+          Controla tus ingresos y gastos del mes actual.
+        </p>
+      </div>
+
+      <!-- Botón de acción rápida (opcional) -->
+      <button
+        class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+        (click)="onAddMovement()"
+      >
+        + Nuevo movimiento
+      </button>
+    </header>
+
+    <!-- Filtros: Mes / Año -->
+    <section
+      class="mb-6 flex flex-col gap-3 rounded-xl bg-white p-4 shadow-sm border border-slate-200 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <p class="text-sm font-medium text-slate-700">
+          Período seleccionado
+        </p>
+        <p class="text-sm text-slate-500">
+          Ajusta el mes y año para ver tus movimientos.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-3 items-center">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">
+            Mes
+          </label>
+          <select
+            class="block w-36 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            [(ngModel)]="selectedMonth"
+            (change)="onPeriodChange()"
+          >
+            <option *ngFor="let month of months" [value]="month.value">
+              {{ month.label }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">
+            Año
+          </label>
+          <select
+            class="block w-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            [(ngModel)]="selectedYear"
+            (change)="onPeriodChange()"
+          >
+            <option *ngFor="let year of years" [value]="year">
+              {{ year }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards resumen -->
+    <section class="grid gap-4 mb-6 sm:grid-cols-3">
+      <!-- Ingresos -->
+      <article class="rounded-xl bg-white p-4 border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
+          Ingresos del mes
+        </p>
+        <p class="mt-2 text-xl font-semibold text-emerald-600">
+          {{ totalIncome | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+          Suma de todos los ingresos del período.
+        </p>
+      </article>
+
+      <!-- Gastos -->
+      <article class="rounded-xl bg-white p-4 border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
+          Gastos del mes
+        </p>
+        <p class="mt-2 text-xl font-semibold text-rose-600">
+          {{ totalExpense | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+          Suma de todos los gastos del período.
+        </p>
+      </article>
+
+      <!-- Remanente -->
+      <article class="rounded-xl bg-white p-4 border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
+          Remanente
+        </p>
+        <p
+          class="mt-2 text-xl font-semibold"
+          [ngClass]="remaining >= 0 ? 'text-emerald-700' : 'text-rose-700'"
+        >
+          {{ remaining | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+          Ingresos – gastos del período.
+        </p>
+      </article>
+    </section>
+
+    <!-- Tabla de movimientos -->
+    <section class="rounded-xl bg-white border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+        <h2 class="text-sm font-medium text-slate-700">
+          Movimientos del mes
+        </h2>
+
+        <!-- Búsqueda rápida (opcional) -->
+        <div class="relative">
+          <input
+            type="text"
+            class="w-48 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            placeholder="Buscar por descripción..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+          />
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                Tipo
+              </th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                Categoría
+              </th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                Descripción
+              </th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
+                Monto
+              </th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                Fecha
+              </th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let movement of filteredMovements">
+              <!-- Tipo -->
+              <td class="px-4 py-2 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                  [ngClass]="movement.type === 'income'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-rose-50 text-rose-700'"
+                >
+                  {{ movement.type === 'income' ? 'Ingreso' : 'Gasto' }}
+                </span>
+              </td>
+
+              <!-- Categoría -->
+              <td class="px-4 py-2 whitespace-nowrap text-slate-700">
+                {{ movement.category }}
+              </td>
+
+              <!-- Descripción -->
+              <td class="px-4 py-2 whitespace-nowrap text-slate-600">
+                {{ movement.description || '-' }}
+              </td>
+
+              <!-- Monto -->
+              <td
+                class="px-4 py-2 whitespace-nowrap text-right font-medium"
+                [ngClass]="movement.type === 'income'
+                  ? 'text-emerald-600'
+                  : 'text-rose-600'"
+              >
+                {{ movement.amount | currency:'DOP':'symbol-narrow':'1.0-0' }}
+              </td>
+
+              <!-- Fecha -->
+              <td class="px-4 py-2 whitespace-nowrap text-slate-500">
+                {{ movement.date | date:'dd/MM/yyyy' }}
+              </td>
+
+              <!-- Acciones -->
+              <td class="px-4 py-2 whitespace-nowrap text-right">
+                <button
+                  class="text-xs font-medium text-sky-600 hover:text-sky-800 mr-3"
+                  (click)="onEditMovement(movement)"
+                >
+                  Editar
+                </button>
+                <button
+                  class="text-xs font-medium text-rose-600 hover:text-rose-800"
+                  (click)="onDeleteMovement(movement)"
+                >
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+
+            <!-- Empty state -->
+            <tr *ngIf="filteredMovements.length === 0">
+              <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-500">
+                No hay movimientos registrados para este período.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+
+<app-create-movement-modal
+  [open]="isNewMovementOpen()"
+  (close)="closeModal()"
+  (save)="handleSave($event)"
+></app-create-movement-modal>

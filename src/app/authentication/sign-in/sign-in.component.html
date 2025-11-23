@@ -1,0 +1,113 @@
+<div class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div class="w-full max-w-md">
+        <!-- Logo / branding -->
+        <div class="mb-6 flex items-center gap-3 justify-center">
+            <div
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-xs font-semibold text-white">
+                WT
+            </div>
+            <div class="flex flex-col">
+                <span class="text-sm font-semibold tracking-tight text-slate-900">
+                    Wallet Tracking
+                </span>
+                <span class="text-[11px] text-slate-500">
+                    Controla tus gastos de forma sencilla.
+                </span>
+            </div>
+        </div>
+
+        <!-- Card -->
+        <div class="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
+            <!-- Header -->
+            <div class="mb-5">
+                <h1 class="text-lg font-semibold text-slate-900">
+                    Inicia sesión
+                </h1>
+                <p class="mt-1 text-xs text-slate-500">
+                    Ingresa con tu correo y contraseña para ver tus movimientos.
+                </p>
+            </div>
+
+            <!-- Form -->
+            <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="space-y-4">
+                <!-- Email -->
+                <div>
+                    <label for="email" class="mb-1 block text-xs font-medium text-slate-600">
+                        Correo electrónico
+                    </label>
+                    <input id="email" type="email" autocomplete="email" formControlName="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
+                   outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
+                        placeholder="tucorreo@ejemplo.com" />
+                    @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                    <p class="mt-1 text-[11px] text-red-500">
+                        Ingresa un correo electrónico válido.
+                    </p>
+                    }
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="mb-1 block text-xs font-medium text-slate-600">
+                        Contraseña
+                    </label>
+                    <input id="password" type="password" autocomplete="current-password" formControlName="password"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
+                   outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
+                        placeholder="••••••••" />
+                    @if (form.get('password')?.invalid && form.get('password')?.touched) {
+                    <p class="mt-1 text-[11px] text-red-500">
+                        La contraseña debe tener al menos 6 caracteres.
+                    </p>
+                    }
+                </div>
+
+                <!-- Remember + forgot -->
+                <div class="flex items-center justify-between gap-3 text-xs">
+                    <label class="inline-flex items-center gap-2 text-slate-600">
+                        <input type="checkbox" formControlName="rememberMe" class="h-3.5 w-3.5 rounded border-slate-300 text-slate-900
+                     focus:ring-slate-900/40" />
+                        <span>Recordarme</span>
+                    </label>
+
+                    <button type="button" class="text-xs font-medium text-slate-600 hover:text-slate-900">
+                        Olvidé mi contraseña
+                    </button>
+                </div>
+
+                <!-- Botón -->
+                <div class="pt-2">
+                    <button type="submit" [disabled]="form.invalid || isSubmitting" class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900
+                   px-4 py-2.5 text-sm font-medium text-white shadow-sm
+                   transition hover:bg-slate-800 disabled:cursor-not-allowed
+                   disabled:bg-slate-300 disabled:text-slate-600">
+                        @if (isSubmitting) {
+                        <span>Cargando...</span>
+                        } @else {
+                        <span>Entrar</span>
+                        }
+                    </button>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <!-- Divider -->
+            <div class="mt-6 flex items-center gap-3">
+                <div class="h-px flex-1 bg-slate-100"></div>
+                <span class="text-[11px] text-slate-400">¿Aún no tienes cuenta?</span>
+                <div class="h-px flex-1 bg-slate-100"></div>
+            </div>
+
+            <!-- Google Signup -->
+            <div class="mt-4">
+                <button type="button" (click)="signInWithGoogle()" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border
+           border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700
+           shadow-sm transition hover:bg-slate-50">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                        class="h-4 w-4" />
+                    <span>Registrarme con Google</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

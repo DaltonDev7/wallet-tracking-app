@@ -1,0 +1,90 @@
+<div class="mx-auto max-w-6xl px-4 py-4">
+  <!-- Header -->
+  <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-lg font-semibold text-slate-900">
+        Categorías
+      </h1>
+      <p class="text-xs text-slate-500">
+        Administra las categorías que usas para clasificar tus movimientos.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="openCreate()"
+      class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs
+             font-medium text-white shadow-sm hover:bg-slate-800"
+    >
+      <span class="text-base leading-none">＋</span>
+      <span>Nueva categoría</span>
+    </button>
+  </div>
+
+  <!-- Lista -->
+  <div class="rounded-xl border border-slate-200 bg-white">
+    @if (categories().length === 0) {
+      <div class="p-4 text-xs text-slate-500">
+        Aún no tienes categorías. Crea la primera con el botón
+        <span class="font-medium text-slate-800">“Nueva categoría”</span>.
+      </div>
+    } @else {
+      <ul class="divide-y divide-slate-100 text-sm">
+        @for (cat of categories(); track cat.id) {
+          <li class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-3">
+              <span
+                class="h-7 w-7 rounded-full border border-slate-200"
+                [ngStyle]="{ 'background-color': cat.color + '33' }"
+              >
+                <span
+                  class="block h-full w-full rounded-full"
+                  [ngStyle]="{ 'background-color': cat.color }"
+                ></span>
+              </span>
+              <div>
+                <p class="font-medium text-slate-900">
+                  {{ cat.name }}
+                </p>
+                <p class="text-[11px]" [ngClass]="{
+                    'text-red-500': cat.type === 'expense',
+                    'text-emerald-600': cat.type === 'income'
+                  }">
+                  {{ cat.type === 'expense' ? 'Gasto' : 'Ingreso' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs">
+              <button
+                type="button"
+                (click)="openEdit(cat)"
+                class="rounded-full border border-slate-200 px-3 py-1 text-slate-600
+                       hover:bg-slate-50"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                (click)="deleteCategory(cat)"
+                class="rounded-full border border-red-200 px-3 py-1 text-red-600
+                       hover:bg-red-50"
+              >
+                Eliminar
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>
+
+<!-- Modal -->
+<app-add-edit-category-modal
+  [open]="modalOpen()"
+  [mode]="modalMode()"
+  [initialCategory]="editingCategory()"
+  (close)="closeModal()"
+  (save)="saveCategory($event)"
+></app-add-edit-category-modal>
