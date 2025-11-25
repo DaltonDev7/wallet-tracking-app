@@ -1,0 +1,41 @@
+<!-- Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+  <!-- Caja -->
+  <div class="w-full max-w-sm rounded-2xl bg-white shadow-xl border border-slate-200">
+    <!-- Header -->
+    <header class="px-5 pt-4 pb-2">
+      <h2 class="text-sm font-semibold text-slate-900">
+        {{ title }}
+      </h2>
+    </header>
+
+    <!-- Mensaje -->
+    <div class="px-5 pb-4">
+      <p class="text-sm text-slate-600">
+        {{ message }}
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-100">
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+      >
+        {{ cancelLabel }}
+      </button>
+
+      <button
+        type="button"
+        (click)="onConfirm()"
+        class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
+        [ngClass]="danger
+          ? 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500'
+          : 'bg-sky-600 hover:bg-sky-700 focus:ring-sky-500'"
+      >
+        {{ confirmLabel }}
+      </button>
+    </footer>
+  </div>
+</div>

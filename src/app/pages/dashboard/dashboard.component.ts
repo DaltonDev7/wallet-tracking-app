@@ -1,12 +1,15 @@
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
-import { Movement, MovementFormValue } from '../../core/interfaces/movements';
+import { Category, Movement, MovementCreateInput, MovementFormValue, MovementView } from '../../core/interfaces/movements';
 import { CreateMovementModalComponent } from '../../modals/create-movement-modal/create-movement-modal.component';
 import { Combobox } from '../../core/interfaces/combobox';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { MovementsService } from '../../core/services/movement.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CategoryService } from '../../core/services/category.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,31 +20,25 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
 })
 export class DashboardComponent implements OnInit {
 
+  // services
+  private movementsService = inject(MovementsService);
+  private destroyRef = inject(DestroyRef);
+  private movementsServices = inject(MovementsService);
+  private categoriesService = inject(CategoryService);
 
   readonly isMenuOpen = signal(false);
   readonly isNewMovementOpen = signal(false);
+  editingMovement = signal<MovementView | null>(null);
+  public years: number[] = [];
 
+  public categoryMap: Record<string, Category> = {};
+  public selectedMonth = new Date().getMonth();
+  public selectedYear = new Date().getFullYear();
 
+  public movements: Movement[] = [];
+  public filteredMovements: MovementView[] = [];
 
-
-  onAddMovement() {
-    this.isNewMovementOpen.set(true);
-    console.log('asd')
-  }
-
-  closeModal() {
-    this.isNewMovementOpen.set(false);
-  }
-
-  handleSave(movement: MovementFormValue) {
-    console.log('Nuevo movimiento guardado:', movement);
-    // Aquí luego:
-    // - llamas a tu servicio para guardarlo en Firestore
-    // - actualizas lista en pantalla
-    this.isNewMovementOpen.set(false);
-  }
-
-
+  public searchTerm = '';
 
   months: Combobox<string>[] = [
     { value: 'Enero', label: 'Enero' },
@@ -59,23 +56,91 @@ export class DashboardComponent implements OnInit {
   ];
 
 
-  years: number[] = [];
+  onAddMovement() {
+    this.isNewMovementOpen.set(true);
+  }
 
-  selectedMonth = new Date().getMonth();
-  selectedYear = new Date().getFullYear();
+  closeModal() {
+    this.isNewMovementOpen.set(false);
+  }
 
-  movements: Movement[] = [];        // aquí luego vienen los datos de Firebase
-  filteredMovements: Movement[] = [];
 
-  // totalIncome = 0;
-  // totalExpense = 0;
-  // remaining = 0;
+  private loadCategories(): void {
+    this.categoriesService
+      .getUserCategories$()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (cats) => {
+          this.categoryMap = {};
+          cats.forEach((c) => {
+            this.categoryMap[c.id] = c;
+          });
 
-  searchTerm = '';
+          // Si ya hay movimientos cargados, actualizamos el filtro
+          console.log(this.categoryMap)
+          this.applyFilters();
+        },
+        error: (err) => console.error('Error cargando categorías', err),
+      });
+
+
+  }
+
+  async onSaveMovement(rawValue: any) {
+    try {
+      const amountNumber = this.parseAmount(rawValue.amount);
+
+      // si viene id => editar, si no => crear
+      if (rawValue.id) {
+        // EDITAR
+        await this.movementsServices.updateMovement(rawValue.id, {
+          type: rawValue.type,
+          amount: amountNumber,
+          date: rawValue.date,
+          categoryId: rawValue.category,
+          description: rawValue.description?.trim() || '',
+        });
+      } else {
+        // CREAR
+        const payload: MovementCreateInput = {
+          type: rawValue.type,
+          amount: amountNumber,
+          date: rawValue.date,
+          categoryId: rawValue.category,
+          description: rawValue.description?.trim() || '',
+        };
+
+        await this.movementsServices.createMovement(payload);
+      }
+
+      this.isNewMovementOpen.set(false);
+      this.loadMovements(); // refrescar tabla
+    } catch (error) {
+      console.error('Error guardando movimiento', error);
+    }
+  }
+
+  private parseAmount(raw: any): number {
+    if (raw == null) return 0;
+
+    let str = String(raw).trim();
+
+    // Si estás usando ngx-mask con decimalMarker="," y thousandSeparator=".":
+    //  - "12.345,67" => "12345.67"
+    // Ajusta esto según tu configuración real:
+    str = str.replace(/\./g, '');  // quita separador de miles
+    str = str.replace(',', '.');   // usa punto como decimal
+
+    const num = Number(str);
+    return isNaN(num) ? 0 : num;
+  }
+
 
   ngOnInit(): void {
     this.initYears();
+    this.loadCategories()
     this.loadMovements(); // luego esto leerá de Firestore
+
   }
 
   initYears() {
@@ -83,10 +148,18 @@ export class DashboardComponent implements OnInit {
     this.years = [currentYear - 1, currentYear, currentYear + 1];
   }
 
-  loadMovements() {
-    // TODO: cargar desde Firebase para el mes/año seleccionados
-    // De momento, podrías simular datos.
-    this.applyFilters();
+  loadMovements(): void {
+    this.movementsService
+      .getUserMovementsByMonth$(this.selectedYear, this.selectedMonth)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (movs) => {
+          this.movements = movs;
+          this.applyFilters();
+        },
+        error: (err) => console.error('Error cargando movimientos', err),
+      });
+
   }
 
   onPeriodChange() {
@@ -97,47 +170,63 @@ export class DashboardComponent implements OnInit {
     this.applyFilters();
   }
 
-  applyFilters() {
-    // Filtrar por mes, año y búsqueda
-    const filtered = this.movements.filter(m => {
-      const d = new Date(m.date);
-      const sameMonth = d.getMonth() === this.selectedMonth;
-      const sameYear = d.getFullYear() === this.selectedYear;
-      const matchesPeriod = sameMonth && sameYear;
+  applyFilters(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+    console.log(this.movements)
+    const filtered: MovementView[] = this.movements
+      .filter((m) => {
+        if (!term) return true;
 
-      const matchesSearch = this.searchTerm
-        ? (m.description || '').toLowerCase().includes(this.searchTerm.toLowerCase())
-        : true;
+        const desc = (m.description || '').toLowerCase();
+        const categoryName = (this.categoryMap[m.categoryId]?.name || '').toLowerCase();
 
-      return matchesPeriod && matchesSearch;
-    });
+        return desc.includes(term) || categoryName.includes(term);
+      })
+      .map((m) => {
+        console.log(m)
+        console.log(this.categoryMap[m.categoryId])
+        return {
+          ...m,
+          categoryName: this.categoryMap[m.categoryId]?.name ?? 'Sin categoría',
+        }
+      })
+    // .map((m) => ({
+    //   ...m,
+    //   categoryName: this.categoryMap[m.categoryId]?.name ?? 'Sin categoría',
+    // }));
 
     this.filteredMovements = filtered;
+    console.log(this.filteredMovements)
     this.calculateTotals();
   }
 
-  calculateTotals() {
-    this.totalIncome = this.filteredMovements
-      .filter(m => m.type === 'income')
+
+
+  calculateTotals(): void {
+    // igual que antes
+    const income = this.filteredMovements
+      .filter((m) => m.type === 'income')
       .reduce((sum, m) => sum + m.amount, 0);
 
-    this.totalExpense = this.filteredMovements
-      .filter(m => m.type === 'expense')
+    const expenses = this.filteredMovements
+      .filter((m) => m.type === 'expense')
       .reduce((sum, m) => sum + m.amount, 0);
 
-    this.remaining = this.totalIncome - this.totalExpense;
+    console.log({ income, expenses });
   }
 
-  onEditMovement(movement: Movement) {
-    // navegar a /movements/:id
+  onEditMovement(movement: MovementView) {
+    this.editingMovement.set(movement);      // modo editar
+    this.isNewMovementOpen.set(true);
   }
-
   onDeleteMovement(movement: Movement) {
     // abrir modal de confirmación y borrar en Firebase
   }
 
 
-
+  onCloseMovementModal() {
+    this.isNewMovementOpen.set(false);
+  }
 
 
 

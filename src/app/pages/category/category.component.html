@@ -10,12 +10,8 @@
       </p>
     </div>
 
-    <button
-      type="button"
-      (click)="openCreate()"
-      class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs
-             font-medium text-white shadow-sm hover:bg-slate-800"
-    >
+    <button type="button" (click)="openCreate()" class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs
+             font-medium text-white shadow-sm hover:bg-slate-800">
       <span class="text-base leading-none">＋</span>
       <span>Nueva categoría</span>
     </button>
@@ -24,67 +20,74 @@
   <!-- Lista -->
   <div class="rounded-xl border border-slate-200 bg-white">
     @if (categories().length === 0) {
-      <div class="p-4 text-xs text-slate-500">
-        Aún no tienes categorías. Crea la primera con el botón
-        <span class="font-medium text-slate-800">“Nueva categoría”</span>.
-      </div>
+    <div class="p-4 text-xs text-slate-500">
+      Aún no tienes categorías. Crea la primera con el botón
+      <span class="font-medium text-slate-800">“Nueva categoría”</span>.
+    </div>
     } @else {
-      <ul class="divide-y divide-slate-100 text-sm">
-        @for (cat of categories(); track cat.id) {
-          <li class="flex items-center justify-between px-4 py-3">
-            <div class="flex items-center gap-3">
-              <span
-                class="h-7 w-7 rounded-full border border-slate-200"
-                [ngStyle]="{ 'background-color': cat.color + '33' }"
-              >
-                <span
-                  class="block h-full w-full rounded-full"
-                  [ngStyle]="{ 'background-color': cat.color }"
-                ></span>
-              </span>
-              <div>
-                <p class="font-medium text-slate-900">
-                  {{ cat.name }}
-                </p>
-                <p class="text-[11px]" [ngClass]="{
-                    'text-red-500': cat.type === 'expense',
-                    'text-emerald-600': cat.type === 'income'
-                  }">
-                  {{ cat.type === 'expense' ? 'Gasto' : 'Ingreso' }}
-                </p>
-              </div>
-            </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-100 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Nombre
+            </th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Tipo
+            </th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Acción
+            </th>
+          </tr>
+        </thead>
 
-            <div class="flex items-center gap-2 text-xs">
-              <button
-                type="button"
-                (click)="openEdit(cat)"
-                class="rounded-full border border-slate-200 px-3 py-1 text-slate-600
-                       hover:bg-slate-50"
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                (click)="deleteCategory(cat)"
-                class="rounded-full border border-red-200 px-3 py-1 text-red-600
-                       hover:bg-red-50"
-              >
-                Eliminar
-              </button>
-            </div>
-          </li>
-        }
-      </ul>
+        <tbody class="divide-y divide-slate-100">
+          @for (category of categories(); track category.id) {
+          <tr class="hover:bg-slate-50 transition-colors">
+            <!-- Nombre -->
+            <td class="px-4 py-3 align-middle text-slate-700">
+              <div class="font-medium">
+                {{ category.name }}
+              </div>
+            </td>
+
+            <!-- Tipo -->
+            <td class="px-4 py-3 align-middle text-slate-500">
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" [ngClass]="category.type === 'income'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-rose-50 text-rose-700'">
+                {{ category.type === 'income' ? 'Ingreso' : 'Gasto' }}
+              </span>
+            </td>
+
+            <!-- Acción -->
+            <td class="px-4 py-3 align-middle text-right">
+              <div class="inline-flex items-center gap-2">
+                <button type="button"
+                  class="inline-flex items-center gap-1 rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700 hover:bg-sky-100 hover:border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1"
+                  (click)="openEdit(category)">
+                  <span class="text-[10px]">✏️</span>
+                  <span>Editar</span>
+                </button>
+
+                <button type="button"
+                  class="inline-flex items-center gap-1 rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 hover:bg-rose-100 hover:border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
+                  (click)="deleteCategory(category)">
+                  <span class="text-[10px]">🗑️</span>
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
     }
   </div>
+
 </div>
 
 <!-- Modal -->
-<app-add-edit-category-modal
-  [open]="modalOpen()"
-  [mode]="modalMode()"
-  [initialCategory]="editingCategory()"
-  (close)="closeModal()"
-  (save)="saveCategory($event)"
-></app-add-edit-category-modal>
+<app-add-edit-category-modal [open]="modalOpen()" [mode]="modalMode()" [initialCategory]="editingCategory()"
+  (close)="closeModal()" (save)="saveCategory($event)"></app-add-edit-category-modal>

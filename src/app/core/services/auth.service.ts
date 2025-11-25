@@ -29,6 +29,6 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    await signOut(this.auth);
+    return await signOut(this.auth);
   }
 }

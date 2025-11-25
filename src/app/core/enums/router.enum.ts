@@ -3,4 +3,5 @@ export enum routesEnum{
     signIn = "sign-in",
     signUp = "signUp",
     income = "income",
+    expenses = "expenses",
 }

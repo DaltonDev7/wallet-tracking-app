@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, OnInit, signal, ViewChild } from '
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from 'firebase/auth';
+import { routesEnum } from '../../core/enums/router.enum';
 
 @Component({
   selector: 'app-navbar',
@@ -41,11 +42,13 @@ export class NavbarComponent implements OnInit {
   }
 
   async onLogout() {
-    // Aquí luego llamas a tu servicio de auth
-    // this.authService.logout();
     console.log('Cerrar sesión');
     await this.authServices.logout().then(() => {
-      this.router.navigate([''])
+
+      console.log('salir')
+      this.router.navigate([routesEnum.signIn
+        
+      ])
     })
 
   }

@@ -178,7 +178,7 @@
 
                 <!-- Categoría -->
                 <td class="px-4 py-2 whitespace-nowrap text-slate-700">
-                  {{ movement.category }}
+                  {{ movement.categoryName  }}
                 </td>
 
                 <!-- Descripción -->
@@ -232,6 +232,11 @@
   </div>
 </div>
 
+app-create-movement-modal
 
-<app-create-movement-modal [open]="isNewMovementOpen()" (close)="closeModal()"
-  (save)="handleSave($event)"></app-create-movement-modal>
+<app-create-movement-modal
+  [open]="isNewMovementOpen()"
+  [initialMovement]="editingMovement()"
+  (close)="onCloseMovementModal()"
+  (save)="onSaveMovement($event)">
+</app-create-movement-modal>
