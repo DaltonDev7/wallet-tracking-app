@@ -73,14 +73,14 @@ export interface Category {
 export type CategoryType = 'expense' | 'income';
 
 
-export interface BaseIncome {
-  id: string;                     // ID único (uuid o Firestore)
-  name: string;                   // Nombre: “Sueldo”, “Renta”, “Freelance”, etc.
-  category: string;               // Categoría: Sueldo, Freelance, Renta, Otros...
-  amount: number;                 // Monto fijo del ingreso
-  frequency: 'Mensual' | 'Quincenal' | 'Semanal' | 'Otro';  // Frecuencia del ingreso
-  active: boolean;                // Para activar/desactivar ingresos base
-  startDate?: string;             // (Opcional) Fecha en que comienza a aplicarse
-  endDate?: string;               // (Opcional) Fecha límite (si deja de ser recurrente)
-  notes?: string;                 // (Opcional) Notas adicionales
+export interface FixedIncome {
+  id: string;
+  name: string;
+  category: string;
+  amount: number;
+  active: boolean;
+  startDate: string; // YYYY-MM
+  notes?: string;
 }
+
+

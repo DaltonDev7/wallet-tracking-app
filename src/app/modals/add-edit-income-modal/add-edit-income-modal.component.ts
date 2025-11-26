@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { BaseIncome } from '../../core/interfaces/movements';
 import { CommonModule } from '@angular/common';
 import { NgxMaskDirective } from 'ngx-mask';
+import { FixedIncome } from '../../core/interfaces/movements';
 
 @Component({
   selector: 'app-add-edit-income-modal',
@@ -12,9 +12,9 @@ import { NgxMaskDirective } from 'ngx-mask';
   styleUrl: './add-edit-income-modal.component.scss'
 })
 export class AddEditIncomeModalComponent implements OnInit {
-  @Input() income: BaseIncome | null = null;          // null => crear, no null => editar
+  @Input() income: FixedIncome | null = null;          // null => crear, no null => editar
   @Output() closed = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<BaseIncome>();
+  @Output() saved = new EventEmitter<FixedIncome>();
 
   form!: FormGroup;
 
@@ -62,16 +62,15 @@ export class AddEditIncomeModalComponent implements OnInit {
       this.income?.id ||
       (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
 
-    const result: BaseIncome = {
+    const result: FixedIncome = {
       id,
       name: raw.name.trim(),
       category: raw.category,
       amount: Number(raw.amount),
       active: raw.active,
       notes: raw.notes?.trim() || '',
-      // startDate: raw.startDate,
+      startDate: raw.startDate,
       // endDate: raw.endDate,
-      frequency: 'Mensual', // si luego quitas frecuencia del modelo, bórralo aquí
     };
 
     this.saved.emit(result);

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
 import { collectionData, Firestore } from '@angular/fire/firestore';
-import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, orderBy, query, where } from 'firebase/firestore';
 import { Observable, filter, switchMap, map } from 'rxjs';
 import { FixedExpense } from '../interfaces/movements';
 
@@ -17,6 +17,37 @@ export class ExpensesService {
   private fixedExpensesCollection(userId: string) {
     return collection(this.firestore, 'users', userId, 'fixed-expenses');
   }
+
+
+  getUserFixedExpensesByMonth$(monthKey: string): Observable<FixedExpense[]> {
+    // monthKey viene en formato 'YYYY-MM' desde el <input type="month">
+    return authState(this.auth).pipe(
+      filter((user): user is NonNullable<typeof user> => !!user),
+      switchMap(user => {
+        const colRef = this.fixedExpensesCollection(user.uid);
+
+        const qRef = query(
+          colRef,
+          where('startDate', '==', monthKey),
+          orderBy('startDate', 'asc')      // requerido cuando usas rango en startDate
+        );
+
+        return collectionData(qRef, { idField: 'id' }) as Observable<any[]>;
+      }),
+      map(docs =>
+        docs.map(d => ({
+          id: d.id,
+          name: d.name,
+          category: d.category ?? '',
+          amount: d.amount,
+          active: d.active,
+          startDate: d.startDate,
+          notes: d.notes ?? '',
+        })) as FixedExpense[]
+      )
+    );
+  }
+
 
   getUserFixedExpenses$(): Observable<FixedExpense[]> {
     return authState(this.auth).pipe(

@@ -23,26 +23,32 @@ export class ExpensesComponent implements OnInit {
   // Resumen
   activeFixedExpensesCount = 0;
   totalFixedExpenses = 0;
-
   showConfirmDelete = false;
 
-
+  private allFixedExpenses: FixedExpense[] = [];
   expensePendingDelete: FixedExpense | null = null;
 
-  // Mes al que se aplicarán los gastos fijos (para <input type="month">)
-  selectedMonthToApply: string = this.getCurrentMonthForInput();
+  selectedMonthToApply!: string;
 
-  // Estado del modal (que todavía no hemos creado)
   showModal = false;
   expenseBeingEdited: FixedExpense | null = null;
 
   ngOnInit(): void {
-    this.fixedExpensesService.getUserFixedExpenses$().subscribe(expenses => {
-      this.fixedExpenses = expenses;
-      this.recalculateSummary();
-    });
+
+
+    this.selectedMonthToApply = this.getCurrentMonthForInput();
+    this.onApplyFixedExpensesToMonth()
+    // this.fixedExpensesService.getUserFixedExpenses$().subscribe(expenses => {
+    //   this.fixedExpenses = expenses;
+    //   this.recalculateSummary();
+    // });
 
     this.recalculateSummary();
+  }
+
+
+  onMonthChange() {
+   this.onApplyFixedExpensesToMonth()
   }
 
   // Abrir modal para crear nuevo gasto fijo
@@ -58,7 +64,7 @@ export class ExpensesComponent implements OnInit {
     this.showModal = true;
   }
 
-  // Cerrar modal (sin guardar)
+
   onModalClosed(): void {
     this.showModal = false;
     this.expenseBeingEdited = null;
@@ -120,10 +126,45 @@ export class ExpensesComponent implements OnInit {
 
   // Aplicar gastos fijos al mes seleccionado
   onApplyFixedExpensesToMonth(): void {
+    console.log(this.selectedMonthToApply)
     if (!this.selectedMonthToApply) return;
-    // aquí luego usarás MovementsService para crear movimientos a partir de los gastos fijos
-    console.log('Aplicar gastos fijos al mes:', this.selectedMonthToApply);
+    console.log('123')
+    this.fixedExpensesService
+      .getUserFixedExpensesByMonth$(this.selectedMonthToApply)
+      .subscribe(expenses => {
+        console.log(expenses)
+        this.fixedExpenses = expenses;
+        this.recalculateSummary();
+      });
   }
+
+
+  private applyFixedExpensesFilter(): void {
+    if (!this.selectedMonthToApply) {
+      // Si no hay mes seleccionado, muestra todo
+      this.fixedExpenses = [...this.allFixedExpenses];
+      this.recalculateSummary();
+      return;
+    }
+
+    const monthKey = this.selectedMonthToApply; // 'YYYY-MM', viene del <input type="month">
+
+    this.fixedExpenses = this.allFixedExpenses.filter(exp => {
+      if (!exp.active) return false;
+
+      // Normalizamos el startDate a 'YYYY-MM'
+      const startKey =
+        exp.startDate?.length === 7
+          ? exp.startDate
+          : exp.startDate?.slice(0, 7);
+
+      // Aplica si el gasto empezó en o antes del mes seleccionado
+      return !!startKey && startKey <= monthKey;
+    });
+
+    this.recalculateSummary();
+  }
+
 
   // Recalcular resumen (contador activos y total)
   private recalculateSummary(): void {
