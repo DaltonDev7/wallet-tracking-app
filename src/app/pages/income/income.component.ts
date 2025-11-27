@@ -14,22 +14,26 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
   styleUrl: './income.component.scss'
 })
 export class IncomeComponent implements OnInit {
-  fixedIncomes: FixedIncome[] = [];
+
+  //services
   private fixedIncomeService = inject(IncomesService);
 
   // resumen
-  activeFixedIncomesCount = 0;
-  totalFixedIncomes = 0;
+  public activeFixedIncomesCount = 0;
+  public totalFixedIncomes = 0;
 
   // modal
-  showModal = false;
-  incomeBeingEdited: FixedIncome | null = null;
+  public showModal = false;
+  public incomeBeingEdited: FixedIncome | null = null;
 
   // confirm delete
-  showConfirmDelete = false;
-  incomePendingDelete: FixedIncome | null = null;
+  public showConfirmDelete = false;
+  public incomePendingDelete: FixedIncome | null = null;
 
-  selectedMonthToApply!: string;
+  public selectedMonthToApply!: string;
+
+  public fixedIncomes: FixedIncome[] = [];
+
 
   ngOnInit(): void {
     this.selectedMonthToApply = this.getCurrentMonth();
@@ -38,12 +42,12 @@ export class IncomeComponent implements OnInit {
   }
 
   onMonthChange(): void {
-     console.log(this.selectedMonthToApply)
+
     this.loadIncomesForMonth();
   }
 
   private loadIncomesForMonth(): void {
-    console.log(this.selectedMonthToApply)
+
     this.fixedIncomeService
       .getUserFixedIncomesByMonth$(this.selectedMonthToApply)
       .subscribe((incomes) => {
@@ -68,7 +72,7 @@ export class IncomeComponent implements OnInit {
   }
 
   async onIncomeSaved(saved: FixedIncome): Promise<void> {
-    console.log(saved)
+
     if (saved.id) {
       // editar
       await this.fixedIncomeService.updateFixedIncome(saved.id, {

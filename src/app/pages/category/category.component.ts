@@ -34,17 +34,7 @@ export class CategoryComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const cats = this.categories();
-    console.log('Categorías actuales:', cats);
-
-    cats.forEach((x) => {
-      console.log(x)
-    })
-
-    cats.forEach(c => console.log('Cat:', c.name));
-
-
-
+   
   }
 
   openCreate() {

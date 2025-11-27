@@ -119,7 +119,7 @@ export class DashboardComponent implements OnInit {
 
 
   private loadSummaryForPeriod(): void {
-
+    console.log('aqiu')
     combineLatest([
       this.incomeServices.getUserFixedIncomesByMonth$(this.selectedMonth),
       this.movementsService.getUserMovementsByMonth$(
@@ -244,6 +244,7 @@ export class DashboardComponent implements OnInit {
 
   movementFilterCategory(): MovementView[] {
     const term = this.searchTerm.trim().toLowerCase();
+    console.log(this.movements)
     const filtered: MovementView[] = this.movements
       .filter((m) => {
         if (!term) return true;
@@ -318,6 +319,7 @@ export class DashboardComponent implements OnInit {
     this.editingMovement.set(movement);      // modo editar
     this.isNewMovementOpen.set(true);
   }
+  
   onDeleteMovement(movement: Movement) {
     this.movementsPendingDelete = movement;
     this.showConfirmDelete = true;
@@ -347,7 +349,8 @@ export class DashboardComponent implements OnInit {
     // 1) Tomamos solo los gastos del mes actual / seleccionado
     let movements = this.movementFilterCategory();
     const expenses = movements.filter((m) => m.type === 'expense');
-
+    console.log(expenses)
+    console.log(movements)
     if (!expenses.length) {
       // Si no hay gastos, dejamos la gráfica vacía o con un label genérico
       this.expenseDoughnutData = {
@@ -375,6 +378,9 @@ export class DashboardComponent implements OnInit {
     // 3) Construimos labels y data
     const labels = Array.from(totalsByCategory.keys());
     const data = labels.map((label) => totalsByCategory.get(label) ?? 0);
+
+    console.log(labels)
+    console.log(data)
 
     // 4) Asignamos colores (reutilizamos la paleta si hay más categorías)
     const backgroundColor = labels.map(
