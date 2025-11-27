@@ -58,14 +58,9 @@ export class AddEditIncomeModalComponent implements OnInit {
 
     const raw = this.form.value;
 
-    const id =
-      this.income?.id ||
-      (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
-
     const result: FixedIncome = {
-      id,
+      id: this.income?.id ?? '',
       name: raw.name.trim(),
-      category: raw.category,
       amount: Number(raw.amount),
       active: raw.active,
       notes: raw.notes?.trim() || '',

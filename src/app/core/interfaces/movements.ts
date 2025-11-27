@@ -74,9 +74,9 @@ export type CategoryType = 'expense' | 'income';
 
 
 export interface FixedIncome {
-  id: string;
+  id?: string;
   name: string;
-  category: string;
+  // category: string;
   amount: number;
   active: boolean;
   startDate: string; // YYYY-MM

@@ -22,9 +22,11 @@ export class IncomesService {
    * monthKey viene en formato 'YYYY-MM' desde el <input type="month">
    */
   getUserFixedIncomesByMonth$(monthKey: string): Observable<FixedIncome[]> {
+    console.log(monthKey)
     return authState(this.auth).pipe(
       filter((user): user is NonNullable<typeof user> => !!user),
       switchMap((user) => {
+
         const colRef = this.fixedIncomesCollection(user.uid);
 
         const qRef = query(
@@ -89,11 +91,10 @@ export class IncomesService {
   ): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('No hay usuario autenticado');
-
+    console.log(input)
     const colRef = this.fixedIncomesCollection(user.uid);
     await addDoc(colRef, {
       name: input.name,
-      category: input.category,
       amount: input.amount,
       active: input.active,
       startDate: input.startDate,
@@ -111,6 +112,7 @@ export class IncomesService {
     id: string,
     changes: Partial<FixedIncome>
   ): Promise<void> {
+    console.log("123456")
     const user = this.auth.currentUser;
     if (!user) throw new Error('No hay usuario autenticado');
 

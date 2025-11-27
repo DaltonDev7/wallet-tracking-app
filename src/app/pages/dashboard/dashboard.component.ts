@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { Category, Movement, MovementCreateInput, MovementFormValue, MovementView } from '../../core/interfaces/movements';
 import { CreateMovementModalComponent } from '../../modals/create-movement-modal/create-movement-modal.component';
@@ -10,11 +10,21 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { MovementsService } from '../../core/services/movement.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CategoryService } from '../../core/services/category.service';
+import { combineLatest } from 'rxjs';
+import { IncomesService } from '../../core/services/incomes.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, CurrencyPipe, CreateMovementModalComponent, NgChartsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    DatePipe,
+    CurrencyPipe,
+    CreateMovementModalComponent,
+    NgChartsModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -25,10 +35,11 @@ export class DashboardComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private movementsServices = inject(MovementsService);
   private categoriesService = inject(CategoryService);
-
+  private incomeServices = inject(IncomesService)
+  public Math = Math;
   readonly isMenuOpen = signal(false);
   readonly isNewMovementOpen = signal(false);
-  editingMovement = signal<MovementView | null>(null);
+  public editingMovement = signal<MovementView | null>(null);
   public years: number[] = [];
 
   public categoryMap: Record<string, Category> = {};
@@ -40,19 +51,27 @@ export class DashboardComponent implements OnInit {
 
   public searchTerm = '';
 
-  months: Combobox<string>[] = [
-    { value: 'Enero', label: 'Enero' },
-    { value: 'Febrero', label: 'Febrero' },
-    { value: 'Marzo', label: 'Marzo' },
-    { value: 'Abril', label: 'Abril' },
-    { value: 'Mayo', label: 'Mayo' },
-    { value: 'Junio', label: 'Junio' },
-    { value: 'Julio', label: 'Julio' },
-    { value: 'Agosto', label: 'Agosto' },
-    { value: 'Septiembre', label: 'Septiembre' },
-    { value: 'Octubre', label: 'Octubre' },
-    { value: 'Noviembre', label: 'Noviembre' },
-    { value: 'Diciembre', label: 'Diciembre' },
+  public totalIncome = 0;
+  public totalExpense = 0;
+  public remaining = this.totalIncome - this.totalExpense;
+
+
+  pageSize = 10;
+  currentPage = 1;
+
+  months: Combobox<number>[] = [
+    { value: 0, label: 'Enero' },
+    { value: 1, label: 'Febrero' },
+    { value: 2, label: 'Marzo' },
+    { value: 3, label: 'Abril' },
+    { value: 4, label: 'Mayo' },
+    { value: 5, label: 'Junio' },
+    { value: 6, label: 'Julio' },
+    { value: 7, label: 'Agosto' },
+    { value: 8, label: 'Septiembre' },
+    { value: 9, label: 'Octubre' },
+    { value: 10, label: 'Noviembre' },
+    { value: 11, label: 'Diciembre' },
   ];
 
 
@@ -84,6 +103,59 @@ export class DashboardComponent implements OnInit {
       });
 
 
+  }
+
+  private getCurrentMonth(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+
+  private loadSummaryForPeriod(): void {
+    const monthKey = this.getCurrentMonth();
+    console.log(monthKey)
+    combineLatest([
+      this.incomeServices.getUserFixedIncomesByMonth$(monthKey),
+      this.movementsService.getUserMovementsByMonth$(
+        this.selectedYear,
+        this.selectedMonth
+      ),
+    ]).subscribe({
+      next: (([fixedIncomes, movements]) => {
+        console.log(fixedIncomes)
+        console.log(movements)
+
+        this.movements = movements;
+        this.applyFilters();
+
+        // 1) Ingresos fijos activos del mes
+        const activeFixed = fixedIncomes.filter((i) => i.active);
+        const fixedIncomeTotal = activeFixed.reduce(
+          (sum, i) => sum + i.amount,
+          0
+        );
+
+        // 2) Movimientos del mes: ingresos y gastos
+        const variableIncomes = movements.filter((m) => m.type === 'income');
+        const variableExpenses = movements.filter((m) => m.type === 'expense');
+
+        const variableIncomeTotal = variableIncomes.reduce(
+          (sum, m) => sum + m.amount,
+          0
+        );
+        const expenseTotal = variableExpenses.reduce(
+          (sum, m) => sum + m.amount,
+          0
+        );
+
+        // 3) Totales para las cards
+        this.totalIncome = fixedIncomeTotal + variableIncomeTotal;
+        this.totalExpense = expenseTotal;
+        this.remaining = this.totalIncome - this.totalExpense;
+      })
+    })
   }
 
   async onSaveMovement(rawValue: any) {
@@ -137,10 +209,13 @@ export class DashboardComponent implements OnInit {
 
 
   ngOnInit(): void {
+
+    console.log(this.selectedMonth)
+
     this.initYears();
     this.loadCategories()
     this.loadMovements(); // luego esto leerá de Firestore
-
+    this.loadSummaryForPeriod()
   }
 
   initYears() {
@@ -156,6 +231,7 @@ export class DashboardComponent implements OnInit {
         next: (movs) => {
           this.movements = movs;
           this.applyFilters();
+          this.updateExpenseChart(); // alimentar la gráfica
         },
         error: (err) => console.error('Error cargando movimientos', err),
       });
@@ -164,15 +240,15 @@ export class DashboardComponent implements OnInit {
 
   onPeriodChange() {
     this.loadMovements();
+    this.loadSummaryForPeriod();
   }
 
   onSearchChange() {
     this.applyFilters();
   }
 
-  applyFilters(): void {
+  movementFilterCategory(): MovementView[] {
     const term = this.searchTerm.trim().toLowerCase();
-    console.log(this.movements)
     const filtered: MovementView[] = this.movements
       .filter((m) => {
         if (!term) return true;
@@ -183,21 +259,49 @@ export class DashboardComponent implements OnInit {
         return desc.includes(term) || categoryName.includes(term);
       })
       .map((m) => {
-        console.log(m)
-        console.log(this.categoryMap[m.categoryId])
         return {
           ...m,
           categoryName: this.categoryMap[m.categoryId]?.name ?? 'Sin categoría',
         }
       })
-    // .map((m) => ({
-    //   ...m,
-    //   categoryName: this.categoryMap[m.categoryId]?.name ?? 'Sin categoría',
-    // }));
+
+    return filtered
+  }
+
+  applyFilters(): void {
+    
+    const filtered = this.movementFilterCategory()
 
     this.filteredMovements = filtered;
     console.log(this.filteredMovements)
     this.calculateTotals();
+
+    this.currentPage = 1;
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredMovements.length / this.pageSize));
+  }
+
+  // Getter para los movimientos de la página actual
+  get pagedMovements() {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    return this.filteredMovements.slice(start, end);
+  }
+
+  // Navegación de páginas
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage + 1);
+  }
+
+  prevPage(): void {
+    this.goToPage(this.currentPage - 1);
   }
 
 
@@ -232,9 +336,68 @@ export class DashboardComponent implements OnInit {
 
 
 
-  totalIncome = 35000;
-  totalExpense = 21000;
-  remaining = this.totalIncome - this.totalExpense;
+  // paleta de colores para las categorías
+  private chartColors = [
+    '#0EA5E9', // sky-500
+    '#22C55E', // emerald-500
+    '#F97316', // orange-500
+    '#6366F1', // indigo-500
+    '#E11D48', // rose-600
+    '#14B8A6', // teal-500
+    '#A855F7', // purple-500
+  ];
+
+  private updateExpenseChart(): void {
+    // 1) Tomamos solo los gastos del mes actual / seleccionado
+    let movements = this.movementFilterCategory();
+    const expenses = movements.filter((m) => m.type === 'expense');
+    console.log(expenses)
+    if (!expenses.length) {
+      // Si no hay gastos, dejamos la gráfica vacía o con un label genérico
+      this.expenseDoughnutData = {
+        labels: ['Sin datos'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#E5E7EB'], // gray-200
+            borderWidth: 0,
+          },
+        ],
+      };
+      return;
+    }
+
+   // 2) Agrupamos por categoría
+    const totalsByCategory = new Map<string, number>();
+
+    for (const m of expenses) {
+      const key = m.categoryName || 'Sin categoría';
+      const prev = totalsByCategory.get(key) ?? 0;
+      totalsByCategory.set(key, prev + m.amount);
+    }
+
+    // 3) Construimos labels y data
+    const labels = Array.from(totalsByCategory.keys());
+    const data = labels.map((label) => totalsByCategory.get(label) ?? 0);
+
+    // 4) Asignamos colores (reutilizamos la paleta si hay más categorías)
+    const backgroundColor = labels.map(
+      (_label, index) => this.chartColors[index % this.chartColors.length]
+    );
+
+    // 5) Creamos un NUEVO objeto para que la gráfica se actualice
+    this.expenseDoughnutData = {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor,
+          borderWidth: 0,
+        },
+      ],
+    };
+  }
+
 
 
   // --------- DATA DUMMY PARA GRÁFICAS ----------
@@ -284,42 +447,9 @@ export class DashboardComponent implements OnInit {
     },
   };
 
-  // Ingresos vs. gastos por categoría (ejemplo)
-  incomeExpenseBarData: ChartConfiguration<'bar'>['data'] = {
-    labels: ['Salario', 'Freelance', 'Otros'],
-    datasets: [
-      {
-        label: 'Ingresos',
-        data: [25000, 8000, 2000],
-        backgroundColor: '#22C55E', // emerald-500
-      },
-      {
-        label: 'Gastos',
-        data: [12000, 2000, 7000],
-        backgroundColor: '#E11D48', // rose-600
-      },
-    ],
-  };
 
-  incomeExpenseBarOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { font: { size: 11 } },
-      },
-    },
-    scales: {
-      x: {
-        ticks: { font: { size: 11 } },
-      },
-      y: {
-        ticks: {
-          font: { size: 11 },
-          callback: (value) => 'RD$ ' + value,
-        },
-      },
-    },
-  };
+
+
+
 
 }

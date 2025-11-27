@@ -14,7 +14,7 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
   styleUrl: './income.component.scss'
 })
 export class IncomeComponent implements OnInit {
-   fixedIncomes: FixedIncome[] = [];
+  fixedIncomes: FixedIncome[] = [];
   private fixedIncomeService = inject(IncomesService);
 
   // resumen
@@ -42,6 +42,7 @@ export class IncomeComponent implements OnInit {
   }
 
   private loadIncomesForMonth(): void {
+    console.log(this.selectedMonthToApply)
     this.fixedIncomeService
       .getUserFixedIncomesByMonth$(this.selectedMonthToApply)
       .subscribe((incomes) => {
@@ -66,10 +67,27 @@ export class IncomeComponent implements OnInit {
   }
 
   async onIncomeSaved(saved: FixedIncome): Promise<void> {
+    console.log(saved)
     if (saved.id) {
-      await this.fixedIncomeService.updateFixedIncome(saved.id, saved);
+      // editar
+      await this.fixedIncomeService.updateFixedIncome(saved.id, {
+        name: saved.name,
+        // category: saved.category,
+        amount: saved.amount,
+        active: saved.active,
+        startDate: saved.startDate,
+        notes: saved.notes,
+      });
     } else {
-      await this.fixedIncomeService.createFixedIncome(saved);
+      // crear
+      await this.fixedIncomeService.createFixedIncome({
+        name: saved.name,
+        // category: saved.category,
+        amount: saved.amount,
+        active: saved.active,
+        startDate: saved.startDate,
+        notes: saved.notes,
+      });
     }
 
     this.showModal = false;
@@ -83,7 +101,7 @@ export class IncomeComponent implements OnInit {
 
   async handleConfirmDelete(): Promise<void> {
     if (!this.incomePendingDelete) return;
-
+    if (!this.incomePendingDelete.id) return;
     await this.fixedIncomeService.deleteFixedIncome(this.incomePendingDelete.id);
     this.incomePendingDelete = null;
     this.showConfirmDelete = false;

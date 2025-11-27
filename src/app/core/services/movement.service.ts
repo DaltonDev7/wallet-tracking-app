@@ -10,6 +10,7 @@ import {
   deleteDoc,
   query,
   where,
+  orderBy,
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { authState } from 'rxfire/auth';
@@ -119,7 +120,8 @@ export class MovementsService {
         const qRef = query(
           colRef,
           where('date', '>=', start),
-          where('date', '<', end)
+          where('date', '<', end),
+          orderBy('date', 'desc')
         );
         return collectionData(qRef, { idField: 'id' }) as Observable<any[]>;
       }),
