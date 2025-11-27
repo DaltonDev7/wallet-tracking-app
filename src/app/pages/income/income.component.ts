@@ -33,11 +33,12 @@ export class IncomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.selectedMonthToApply = this.getCurrentMonth();
-
+    console.log(this.selectedMonthToApply)
     this.loadIncomesForMonth();
   }
 
   onMonthChange(): void {
+     console.log(this.selectedMonthToApply)
     this.loadIncomesForMonth();
   }
 

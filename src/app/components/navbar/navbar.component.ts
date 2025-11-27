@@ -22,9 +22,6 @@ export class NavbarComponent implements OnInit {
   ngOnInit(): void {
     this.authServices.user$.subscribe((u) => {
       this.user.set(u);
-
-      console.log("Usuario completo:", u);
-      console.log("URL de la foto:", u?.photoURL);
     });
   }
 
@@ -42,15 +39,11 @@ export class NavbarComponent implements OnInit {
   }
 
   async onLogout() {
-    console.log('Cerrar sesión');
     await this.authServices.logout().then(() => {
 
-      console.log('salir')
       this.router.navigate([routesEnum.signIn
-        
       ])
     })
-
   }
 
 

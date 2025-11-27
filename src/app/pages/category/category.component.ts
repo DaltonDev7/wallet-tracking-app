@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { AddEditCategoryModalComponent } from '../../modals/add-edit-category-modal/add-edit-category-modal.component';
 import { CategoryService } from '../../core/services/category.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-category',
   standalone: true,
-  imports: [CommonModule, AddEditCategoryModalComponent],
+  imports: [CommonModule, AddEditCategoryModalComponent, ConfirmModalComponent],
   templateUrl: './category.component.html',
   styleUrl: './category.component.scss'
 })
@@ -16,10 +17,11 @@ export class CategoryComponent implements OnInit {
 
   private categoriesService = inject(CategoryService);
 
-
+  public showConfirmDelete = false;
   readonly modalOpen = signal(false);
   readonly modalMode = signal<'create' | 'edit'>('create');
   readonly editingCategory = signal<Category | null>(null);
+  public categoryPending: Category | null = null;
 
   constructor() {
     effect(() => {
@@ -79,16 +81,22 @@ export class CategoryComponent implements OnInit {
   }
 
   async deleteCategory(category: Category) {
-    const ok = confirm(`¿Eliminar la categoría "${category.name}"?`);
-    if (!ok) return;
+    this.categoryPending = category;
+    this.showConfirmDelete = true;
+  }
 
-    try {
-      await this.categoriesService.deleteCategory(category.id).then(() => {
+  async handleConfirmDelete(): Promise<void> {
+    if (!this.categoryPending) return;
+    if (!this.categoryPending.id) return;
+    await this.categoriesService.deleteCategory(this.categoryPending.id);
+    this.categoryPending = null;
+    this.showConfirmDelete = false;
+  }
 
-      })
-    } catch (err) {
-      console.error('Error eliminando categoría', err);
-    }
+
+  handleCancelDelete(): void {
+    this.categoryPending = null;
+    this.showConfirmDelete = false;
   }
 
 

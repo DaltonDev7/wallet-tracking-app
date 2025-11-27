@@ -15,7 +15,7 @@ import {
 import { Auth } from '@angular/fire/auth';
 import { authState } from 'rxfire/auth';
 
-import { Observable, map, filter, switchMap } from 'rxjs';
+import { Observable, map, filter, switchMap, of } from 'rxjs';
 import { Movement, MovementCreateInput, MovementUpdateInput } from '../interfaces/movements';
 
 
@@ -100,41 +100,51 @@ export class MovementsService {
   }
 
   /** Movimientos del usuario para un mes/año específicos */
-  getUserMovementsByMonth$(year: number, monthIndex0: number): Observable<Movement[]> {
-    // monthIndex0: 0 = enero, 11 = diciembre
-    const month = monthIndex0 + 1;
-
-    const monthStr = String(month).padStart(2, '0');
-    const start = `${year}-${monthStr}-01`; // inclusive
-
-    // para el límite superior usamos el primer día del mes siguiente
-    const nextMonth = month === 12 ? 1 : month + 1;
-    const nextYear = month === 12 ? year + 1 : year;
-    const nextMonthStr = String(nextMonth).padStart(2, '0');
-    const end = `${nextYear}-${nextMonthStr}-01`; // exclusivo
-
-    return authState(this.auth).pipe(
-      filter((user): user is NonNullable<typeof user> => !!user),
-      switchMap((user) => {
-        const colRef = this.movementsCollection(user.uid);
-        const qRef = query(
-          colRef,
-          where('date', '>=', start),
-          where('date', '<', end),
-          orderBy('date', 'desc')
-        );
-        return collectionData(qRef, { idField: 'id' }) as Observable<any[]>;
-      }),
-      map((docs) =>
-        docs.map((d) => ({
-          id: d.id,
-          type: d.type,
-          amount: d.amount,
-          date: d.date,
-          categoryId: d.categoryId,         // si guardaste el nombre
-          description: d.description,
-        })) as Movement[]
-      )
-    );
+  getUserMovementsByMonth$(monthKey: string): Observable<Movement[]> {
+  // monthKey viene como 'YYYY-MM' desde el <input type="month">
+  if (!monthKey) {
+    return of([]); // necesitas importar of desde 'rxjs'
   }
+
+  const [yearStr, monthStr] = monthKey.split('-'); // '2025-11' -> ['2025','11']
+  const year = Number(yearStr);
+  const month = Number(monthStr); // 1–12
+
+  const monthStrPadded = String(month).padStart(2, '0');
+  const start = `${year}-${monthStrPadded}-01`; // inclusive
+
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextMonthStr = String(nextMonth).padStart(2, '0');
+  const end = `${nextYear}-${nextMonthStr}-01`; // exclusivo
+
+  return authState(this.auth).pipe(
+    filter((user): user is NonNullable<typeof user> => !!user),
+    switchMap((user) => {
+      const colRef = this.movementsCollection(user.uid);
+      const qRef = query(
+        colRef,
+        where('date', '>=', start),
+        where('date', '<', end),
+        orderBy('date', 'desc')
+      );
+      return collectionData(qRef, { idField: 'id' }) as Observable<any[]>;
+    }),
+    map(
+      (docs) =>
+        docs.map(
+          (d) =>
+            ({
+              id: d.id,
+              type: d.type,
+              amount: d.amount,
+              date: d.date,
+              categoryId: d.categoryId,
+              description: d.description,
+            }) as Movement
+        ) as Movement[]
+    )
+  );
+}
+
 }

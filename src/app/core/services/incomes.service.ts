@@ -22,7 +22,7 @@ export class IncomesService {
    * monthKey viene en formato 'YYYY-MM' desde el <input type="month">
    */
   getUserFixedIncomesByMonth$(monthKey: string): Observable<FixedIncome[]> {
-    console.log(monthKey)
+
     return authState(this.auth).pipe(
       filter((user): user is NonNullable<typeof user> => !!user),
       switchMap((user) => {

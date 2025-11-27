@@ -1,4 +1,4 @@
-import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { CommonModule, DatePipe, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
@@ -12,6 +12,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CategoryService } from '../../core/services/category.service';
 import { combineLatest } from 'rxjs';
 import { IncomesService } from '../../core/services/incomes.service';
+import { AnimatedNumberPipe } from '../../core/pipes/animated-number.pipe';
+import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,8 +25,10 @@ import { IncomesService } from '../../core/services/incomes.service';
     CurrencyPipe,
     CreateMovementModalComponent,
     NgChartsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    ConfirmModalComponent
   ],
+  providers: [DecimalPipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -43,7 +47,7 @@ export class DashboardComponent implements OnInit {
   public years: number[] = [];
 
   public categoryMap: Record<string, Category> = {};
-  public selectedMonth = new Date().getMonth();
+  public selectedMonth!: string;
   public selectedYear = new Date().getFullYear();
 
   public movements: Movement[] = [];
@@ -54,24 +58,26 @@ export class DashboardComponent implements OnInit {
   public totalIncome = 0;
   public totalExpense = 0;
   public remaining = this.totalIncome - this.totalExpense;
+  public showConfirmDelete = false;
 
+  public movementsPendingDelete: Movement | null = null
 
   pageSize = 10;
   currentPage = 1;
 
   months: Combobox<number>[] = [
-    { value: 0, label: 'Enero' },
-    { value: 1, label: 'Febrero' },
-    { value: 2, label: 'Marzo' },
-    { value: 3, label: 'Abril' },
-    { value: 4, label: 'Mayo' },
-    { value: 5, label: 'Junio' },
-    { value: 6, label: 'Julio' },
-    { value: 7, label: 'Agosto' },
-    { value: 8, label: 'Septiembre' },
-    { value: 9, label: 'Octubre' },
-    { value: 10, label: 'Noviembre' },
-    { value: 11, label: 'Diciembre' },
+    { value: 1, label: 'Enero' },
+    { value: 2, label: 'Febrero' },
+    { value: 3, label: 'Marzo' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Mayo' },
+    { value: 6, label: 'Junio' },
+    { value: 7, label: 'Julio' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Septiembre' },
+    { value: 10, label: 'Octubre' },
+    { value: 11, label: 'Noviembre' },
+    { value: 12, label: 'Diciembre' },
   ];
 
 
@@ -96,7 +102,6 @@ export class DashboardComponent implements OnInit {
           });
 
           // Si ya hay movimientos cargados, actualizamos el filtro
-          console.log(this.categoryMap)
           this.applyFilters();
         },
         error: (err) => console.error('Error cargando categorías', err),
@@ -114,18 +119,14 @@ export class DashboardComponent implements OnInit {
 
 
   private loadSummaryForPeriod(): void {
-    const monthKey = this.getCurrentMonth();
-    console.log(monthKey)
+
     combineLatest([
-      this.incomeServices.getUserFixedIncomesByMonth$(monthKey),
+      this.incomeServices.getUserFixedIncomesByMonth$(this.selectedMonth),
       this.movementsService.getUserMovementsByMonth$(
-        this.selectedYear,
         this.selectedMonth
       ),
     ]).subscribe({
       next: (([fixedIncomes, movements]) => {
-        console.log(fixedIncomes)
-        console.log(movements)
 
         this.movements = movements;
         this.applyFilters();
@@ -209,23 +210,17 @@ export class DashboardComponent implements OnInit {
 
 
   ngOnInit(): void {
+    this.selectedMonth = this.getCurrentMonth();
 
-    console.log(this.selectedMonth)
-
-    this.initYears();
     this.loadCategories()
     this.loadMovements(); // luego esto leerá de Firestore
     this.loadSummaryForPeriod()
   }
 
-  initYears() {
-    const currentYear = new Date().getFullYear();
-    this.years = [currentYear - 1, currentYear, currentYear + 1];
-  }
 
   loadMovements(): void {
     this.movementsService
-      .getUserMovementsByMonth$(this.selectedYear, this.selectedMonth)
+      .getUserMovementsByMonth$(this.selectedMonth)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (movs) => {
@@ -269,11 +264,11 @@ export class DashboardComponent implements OnInit {
   }
 
   applyFilters(): void {
-    
+
     const filtered = this.movementFilterCategory()
 
     this.filteredMovements = filtered;
-    console.log(this.filteredMovements)
+
     this.calculateTotals();
 
     this.currentPage = 1;
@@ -316,7 +311,7 @@ export class DashboardComponent implements OnInit {
       .filter((m) => m.type === 'expense')
       .reduce((sum, m) => sum + m.amount, 0);
 
-    console.log({ income, expenses });
+
   }
 
   onEditMovement(movement: MovementView) {
@@ -324,7 +319,8 @@ export class DashboardComponent implements OnInit {
     this.isNewMovementOpen.set(true);
   }
   onDeleteMovement(movement: Movement) {
-    // abrir modal de confirmación y borrar en Firebase
+    this.movementsPendingDelete = movement;
+    this.showConfirmDelete = true;
   }
 
 
@@ -351,7 +347,7 @@ export class DashboardComponent implements OnInit {
     // 1) Tomamos solo los gastos del mes actual / seleccionado
     let movements = this.movementFilterCategory();
     const expenses = movements.filter((m) => m.type === 'expense');
-    console.log(expenses)
+
     if (!expenses.length) {
       // Si no hay gastos, dejamos la gráfica vacía o con un label genérico
       this.expenseDoughnutData = {
@@ -367,7 +363,7 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-   // 2) Agrupamos por categoría
+    // 2) Agrupamos por categoría
     const totalsByCategory = new Map<string, number>();
 
     for (const m of expenses) {
@@ -404,52 +400,30 @@ export class DashboardComponent implements OnInit {
 
   // Distribución de gastos por categoría (solo gastos)
   expenseDoughnutData: ChartConfiguration<'doughnut'>['data'] = {
-    labels: ['Comida', 'Transporte', 'Servicios', 'Ocio', 'Otros'],
-    datasets: [
-      {
-        data: [8000, 3000, 4000, 2000, 4000], // RD$ por categoría
-        backgroundColor: [
-          '#0EA5E9', // sky-500
-          '#22C55E', // emerald-500
-          '#F97316', // orange-500
-          '#6366F1', // indigo-500
-          '#E11D48', // rose-600
-        ],
-        borderWidth: 0,
-      },
-    ],
+    labels: [],
+    datasets: [],
   };
 
   expenseDoughnutOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    cutout: '60%',
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: { size: 11 },
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const value = ctx.parsed;
-            const total = (ctx.dataset.data as number[]).reduce(
-              (acc, n) => acc + n,
-              0
-            );
-            const percent = ((value / total) * 100).toFixed(1);
-            const label = ctx.label || 'Categoría';
-            return `${label}: RD$ ${value.toLocaleString()} (${percent}%)`;
-          },
-        },
-      },
-    },
+
   };
 
 
+  async handleConfirmDelete(): Promise<void> {
+    if (!this.movementsPendingDelete) return;
 
+    const expense = this.movementsPendingDelete;
 
+    await this.movementsServices.deleteMovement(expense.id);
 
+    this.movementsPendingDelete = null;
+    this.showConfirmDelete = false;
+    this.loadSummaryForPeriod()
+  }
+
+  handleCancelDelete(): void {
+    this.movementsPendingDelete = null;
+    this.showConfirmDelete = false;
+  }
 
 }

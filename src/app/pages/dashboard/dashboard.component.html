@@ -33,7 +33,14 @@
       </div>
 
       <div class="flex flex-wrap gap-3 items-center">
-        <div>
+
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <input type="month" (change)="onPeriodChange()" [(ngModel)]="selectedMonth"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+
+        <!-- <div>
           <label class="block text-xs font-medium text-slate-500 mb-1">
             Mes
           </label>
@@ -61,7 +68,7 @@
             </option>
             }
           </select>
-        </div>
+        </div> -->
       </div>
     </section>
 
@@ -291,3 +298,9 @@
 <app-create-movement-modal [open]="isNewMovementOpen()" [initialMovement]="editingMovement()"
   (close)="onCloseMovementModal()" (save)="onSaveMovement($event)">
 </app-create-movement-modal>
+
+@if (showConfirmDelete) {
+<app-confirm-modal [confirmLabel]="'Eliminar'" [cancelLabel]="'Cancelar'" [danger]="true"
+  (confirmed)="handleConfirmDelete()" (cancelled)="handleCancelDelete()">
+</app-confirm-modal>
+}
