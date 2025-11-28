@@ -37,7 +37,6 @@ export class IncomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.selectedMonthToApply = this.getCurrentMonth();
-    console.log(this.selectedMonthToApply)
     this.loadIncomesForMonth();
   }
 
@@ -56,22 +55,22 @@ export class IncomeComponent implements OnInit {
       });
   }
 
-  onAddFixedIncome(): void {
+  public onAddFixedIncome(): void {
     this.incomeBeingEdited = null;
     this.showModal = true;
   }
 
-  onEditFixedIncome(income: FixedIncome): void {
+  public onEditFixedIncome(income: FixedIncome): void {
     this.incomeBeingEdited = { ...income };
     this.showModal = true;
   }
 
-  onModalClosed(): void {
+  public onModalClosed(): void {
     this.showModal = false;
     this.incomeBeingEdited = null;
   }
 
-  async onIncomeSaved(saved: FixedIncome): Promise<void> {
+  public async onIncomeSaved(saved: FixedIncome): Promise<void> {
 
     if (saved.id) {
       // editar
@@ -99,12 +98,12 @@ export class IncomeComponent implements OnInit {
     this.incomeBeingEdited = null;
   }
 
-  confirmDeleteFixedIncome(income: FixedIncome): void {
+  public confirmDeleteFixedIncome(income: FixedIncome): void {
     this.incomePendingDelete = income;
     this.showConfirmDelete = true;
   }
 
-  async handleConfirmDelete(): Promise<void> {
+  public async handleConfirmDelete(): Promise<void> {
     if (!this.incomePendingDelete) return;
     if (!this.incomePendingDelete.id) return;
     await this.fixedIncomeService.deleteFixedIncome(this.incomePendingDelete.id);
@@ -112,7 +111,7 @@ export class IncomeComponent implements OnInit {
     this.showConfirmDelete = false;
   }
 
-  handleCancelDelete(): void {
+  public handleCancelDelete(): void {
     this.incomePendingDelete = null;
     this.showConfirmDelete = false;
   }

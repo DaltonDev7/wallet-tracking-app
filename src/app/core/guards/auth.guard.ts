@@ -15,7 +15,6 @@ export const authGuard: CanActivateFn = (route, state) => {
     map((user) => {
       if (user) {
         // Usuario logueado → permitir acceso
-        console.log(user)
         return true;
       } else {
         // No logueado → redirigir

@@ -5,8 +5,7 @@ import { AddEditExpensesModalComponent } from '../../modals/add-edit-expenses-mo
 import { FixedExpense } from '../../core/interfaces/movements';
 import { ExpensesService } from '../../core/services/expenses.service';
 import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
-
-
+import { CategoryService } from '../../core/services/category.service';
 
 @Component({
   selector: 'app-expenses',
@@ -18,49 +17,60 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
 export class ExpensesComponent implements OnInit {
 
   // Lista de gastos fijos
-  public fixedExpenses: FixedExpense[] = [];
   private fixedExpensesService = inject(ExpensesService);
-
+  private categoryServices = inject(CategoryService);
+  
   // Resumen
   public activeFixedExpensesCount = 0;
   public totalFixedExpenses = 0;
   public showConfirmDelete = false;
 
-  private allFixedExpenses: FixedExpense[] = [];
   public expensePendingDelete: FixedExpense | null = null;
-
-  public selectedMonthToApply!: string;
-
   public showModal = false;
+
+  public categoriesMap: Record<string, string> = {};
+  public fixedExpenses: FixedExpense[] = [];
+  public selectedMonthToApply!: string;
   public expenseBeingEdited: FixedExpense | null = null;
 
   ngOnInit(): void {
 
-
     this.selectedMonthToApply = this.getCurrentMonthForInput();
-    this.onApplyFixedExpensesToMonth()
+
+
+    this.categoryServices.getUserCategories$().subscribe(categories => {
+      this.categoriesMap = categories.reduce((acc, c) => {
+        acc[c.id] = c.name;
+        return acc;
+      }, {} as Record<string, string>);
+
+
+      this.onApplyFixedExpensesToMonth()
+    });
+
+
     this.recalculateSummary();
   }
 
 
-  onMonthChange() {
-   this.onApplyFixedExpensesToMonth()
+  public onMonthChange() {
+    this.onApplyFixedExpensesToMonth()
   }
 
-  onAddFixedExpense(): void {
+  public onAddFixedExpense(): void {
     this.expenseBeingEdited = null;
     this.showModal = true;
   }
 
 
-  onEditFixedExpense(expense: FixedExpense): void {
+  public onEditFixedExpense(expense: FixedExpense): void {
 
     this.expenseBeingEdited = { ...expense };
     this.showModal = true;
   }
 
 
-  onModalClosed(): void {
+  public onModalClosed(): void {
     this.showModal = false;
     this.expenseBeingEdited = null;
   }
@@ -103,7 +113,6 @@ export class ExpensesComponent implements OnInit {
         active: saved.active,
         startDate: saved.startDate,
         notes: saved.notes,
-        // id lo genera Firestore
       });
     }
 
@@ -123,12 +132,15 @@ export class ExpensesComponent implements OnInit {
   onApplyFixedExpensesToMonth(): void {
 
     if (!this.selectedMonthToApply) return;
-  
+
     this.fixedExpensesService
       .getUserFixedExpensesByMonth$(this.selectedMonthToApply)
       .subscribe(expenses => {
-        console.log(expenses)
-        this.fixedExpenses = expenses;
+        this.fixedExpenses = expenses.map(exp => ({
+          ...exp,
+          category: this.categoriesMap[exp.category] || 'Sin categoría'
+        }));
+
         this.recalculateSummary();
       });
   }
@@ -148,8 +160,4 @@ export class ExpensesComponent implements OnInit {
     return `${year}-${month}`;
   }
 
-  // ID simple (en producción usarías el id de Firestore)
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 10);
-  }
 }

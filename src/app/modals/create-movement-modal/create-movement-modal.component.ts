@@ -83,7 +83,7 @@ export class CreateMovementModalComponent implements OnInit, OnChanges {
       .getUserCategories$()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cats) => {
-        console.log(cats)
+
         this.allCategories = cats;
         this.updateCategoryOptions();
       });
