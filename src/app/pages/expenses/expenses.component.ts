@@ -7,8 +7,6 @@ import { ExpensesService } from '../../core/services/expenses.service';
 import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
 import { CategoryService } from '../../core/services/category.service';
 
-
-
 @Component({
   selector: 'app-expenses',
   standalone: true,
@@ -19,23 +17,20 @@ import { CategoryService } from '../../core/services/category.service';
 export class ExpensesComponent implements OnInit {
 
   // Lista de gastos fijos
-  public fixedExpenses: FixedExpense[] = [];
   private fixedExpensesService = inject(ExpensesService);
   private categoryServices = inject(CategoryService);
-
+  
   // Resumen
   public activeFixedExpensesCount = 0;
   public totalFixedExpenses = 0;
   public showConfirmDelete = false;
 
-  private allFixedExpenses: FixedExpense[] = [];
   public expensePendingDelete: FixedExpense | null = null;
-  public categoriesMap: Record<string, string> = {};
-
-
-  public selectedMonthToApply!: string;
-
   public showModal = false;
+
+  public categoriesMap: Record<string, string> = {};
+  public fixedExpenses: FixedExpense[] = [];
+  public selectedMonthToApply!: string;
   public expenseBeingEdited: FixedExpense | null = null;
 
   ngOnInit(): void {
@@ -58,24 +53,24 @@ export class ExpensesComponent implements OnInit {
   }
 
 
-  onMonthChange() {
+  public onMonthChange() {
     this.onApplyFixedExpensesToMonth()
   }
 
-  onAddFixedExpense(): void {
+  public onAddFixedExpense(): void {
     this.expenseBeingEdited = null;
     this.showModal = true;
   }
 
 
-  onEditFixedExpense(expense: FixedExpense): void {
+  public onEditFixedExpense(expense: FixedExpense): void {
 
     this.expenseBeingEdited = { ...expense };
     this.showModal = true;
   }
 
 
-  onModalClosed(): void {
+  public onModalClosed(): void {
     this.showModal = false;
     this.expenseBeingEdited = null;
   }
@@ -118,7 +113,6 @@ export class ExpensesComponent implements OnInit {
         active: saved.active,
         startDate: saved.startDate,
         notes: saved.notes,
-        // id lo genera Firestore
       });
     }
 
@@ -166,8 +160,4 @@ export class ExpensesComponent implements OnInit {
     return `${year}-${month}`;
   }
 
-  // ID simple (en producción usarías el id de Firestore)
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 10);
-  }
 }

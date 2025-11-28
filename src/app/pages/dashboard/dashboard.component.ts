@@ -37,36 +37,40 @@ export class DashboardComponent implements OnInit {
 
   // services
   private movementsService = inject(MovementsService);
-  private destroyRef = inject(DestroyRef);
   private movementsServices = inject(MovementsService);
   private categoriesService = inject(CategoryService);
   private incomeServices = inject(IncomesService)
   private expenseServices = inject(ExpensesService)
 
+  private destroyRef = inject(DestroyRef);
+
   public Math = Math;
   readonly isMenuOpen = signal(false);
   readonly isNewMovementOpen = signal(false);
   public editingMovement = signal<MovementView | null>(null);
-  public years: number[] = [];
+
 
   public categoryMap: Record<string, Category> = {};
   public selectedMonth!: string;
-  public selectedYear = new Date().getFullYear();
+
 
   public movements: Movement[] = [];
   public filteredMovements: MovementView[] = [];
 
   public searchTerm = '';
   public fixedExpensesUser: FixedExpense[] = []
+
+  // variables resumen
   public totalIncome = 0;
   public totalExpense = 0;
-  public remaining = this.totalIncome - this.totalExpense;
+  public remaining = 0;
   public showConfirmDelete = false;
 
   public movementsPendingDelete: Movement | null = null
 
-  pageSize = 10;
-  currentPage = 1;
+  // paginacion
+  public pageSize = 10;
+  public currentPage = 1;
 
   months: Combobox<number>[] = [
     { value: 1, label: 'Enero' },
@@ -83,6 +87,16 @@ export class DashboardComponent implements OnInit {
     { value: 12, label: 'Diciembre' },
   ];
 
+  // Distribución de gastos por categoría (solo gastos)
+  expenseDoughnutData: ChartConfiguration<'doughnut'>['data'] = {
+    labels: [],
+    datasets: [],
+  };
+
+  expenseDoughnutOptions: ChartOptions<'doughnut'> = {
+
+  };
+
 
   ngOnInit(): void {
     this.selectedMonth = this.getCurrentMonth();
@@ -94,11 +108,12 @@ export class DashboardComponent implements OnInit {
 
 
 
-  onAddMovement() {
+
+  public onAddMovement() {
     this.isNewMovementOpen.set(true);
   }
 
-  closeModal() {
+  public closeModal() {
     this.isNewMovementOpen.set(false);
   }
 
@@ -114,7 +129,7 @@ export class DashboardComponent implements OnInit {
             this.categoryMap[c.id] = c;
           });
 
-          await this.updateExpenseChart()
+          // await this.updateExpenseChart()
 
           // Si ya hay movimientos cargados, actualizamos el filtro
           this.applyFilters();
@@ -136,7 +151,7 @@ export class DashboardComponent implements OnInit {
 
 
   private loadSummaryForPeriod(): void {
-    console.log('aqiu')
+
     combineLatest([
       this.incomeServices.getUserFixedIncomesByMonth$(this.selectedMonth),
       this.movementsService.getUserMovementsByMonth$(
@@ -147,7 +162,7 @@ export class DashboardComponent implements OnInit {
       next: (([fixedIncomes, movements, fixedExpense]) => {
 
         this.fixedExpensesUser = fixedExpense
-        console.log(this.fixedExpensesUser)
+
         this.movements = movements;
         this.applyFilters();
 
@@ -190,7 +205,6 @@ export class DashboardComponent implements OnInit {
     try {
       const amountNumber = this.parseAmount(rawValue.amount);
 
-      // si viene id => editar, si no => crear
       if (rawValue.id) {
         // EDITAR
         await this.movementsServices.updateMovement(rawValue.id, {
@@ -236,36 +250,35 @@ export class DashboardComponent implements OnInit {
   }
 
 
-
-
-  loadMovements(): void {
+  public loadMovements(): void {
     this.movementsService
       .getUserMovementsByMonth$(this.selectedMonth)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (movs) => {
+        next: async (movs) => {
           this.movements = movs;
           this.applyFilters();
-          console.log('cargar ')
-          this.updateExpenseChart(); // alimentar la gráfica
+
+          await this.updateExpenseChart(); // alimentar la gráfica
         },
         error: (err) => console.error('Error cargando movimientos', err),
       });
 
   }
 
-  onPeriodChange() {
+  public onPeriodChange() {
     this.loadMovements();
     this.loadSummaryForPeriod();
   }
 
-  onSearchChange() {
+  public onSearchChange() {
     this.applyFilters();
   }
 
-  movementFilterCategory(): MovementView[] {
+  // obtener los nombres de la categoria
+  public movementFilterCategory(): MovementView[] {
     const term = this.searchTerm.trim().toLowerCase();
-    console.log(this.movements)
+
     const filtered: MovementView[] = this.movements
       .filter((m) => {
         if (!term) return true;
@@ -281,8 +294,6 @@ export class DashboardComponent implements OnInit {
           categoryName: this.categoryMap[m.categoryId]?.name ?? 'Sin categoría',
         }
       })
-    console.log(this.categoryMap)
-    console.log(filtered)
     return filtered
   }
 
@@ -292,7 +303,6 @@ export class DashboardComponent implements OnInit {
 
     this.filteredMovements = filtered;
 
-    // this.calculateTotals();
 
     this.currentPage = 1;
   }
@@ -322,21 +332,6 @@ export class DashboardComponent implements OnInit {
     this.goToPage(this.currentPage - 1);
   }
 
-
-
-  calculateTotals(): void {
-    // igual que antes
-    const income = this.filteredMovements
-      .filter((m) => m.type === 'income')
-      .reduce((sum, m) => sum + m.amount, 0);
-
-    const expenses = this.filteredMovements
-      .filter((m) => m.type === 'expense')
-      .reduce((sum, m) => sum + m.amount, 0);
-
-
-  }
-
   onEditMovement(movement: MovementView) {
     this.editingMovement.set(movement);      // modo editar
     this.isNewMovementOpen.set(true);
@@ -347,14 +342,9 @@ export class DashboardComponent implements OnInit {
     this.showConfirmDelete = true;
   }
 
-
   onCloseMovementModal() {
     this.isNewMovementOpen.set(false);
   }
-
-
-
-
 
   // paleta de colores para las categorías
   private chartColors = [
@@ -435,23 +425,6 @@ export class DashboardComponent implements OnInit {
       ],
     };
   }
-
-
-
-
-
-  // --------- DATA DUMMY PARA GRÁFICAS ----------
-
-  // Distribución de gastos por categoría (solo gastos)
-  expenseDoughnutData: ChartConfiguration<'doughnut'>['data'] = {
-    labels: [],
-    datasets: [],
-  };
-
-  expenseDoughnutOptions: ChartOptions<'doughnut'> = {
-
-  };
-
 
   async handleConfirmDelete(): Promise<void> {
     if (!this.movementsPendingDelete) return;

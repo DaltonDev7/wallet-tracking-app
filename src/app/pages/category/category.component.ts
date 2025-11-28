@@ -24,9 +24,7 @@ export class CategoryComponent implements OnInit {
   public categoryPending: Category | null = null;
 
   constructor() {
-    effect(() => {
-      console.log('Categorías cambiaron:', this.categories());
-    });
+
   }
 
   categories: Signal<Category[]> = toSignal(this.categoriesService.getUserCategories$(), {
@@ -34,22 +32,22 @@ export class CategoryComponent implements OnInit {
   });
 
   ngOnInit(): void {
-   
+
   }
 
-  openCreate() {
+  public openCreate() {
     this.modalMode.set('create');
     this.editingCategory.set(null);
     this.modalOpen.set(true);
   }
 
-  openEdit(cat: Category) {
+  public openEdit(cat: Category) {
     this.modalMode.set('edit');
     this.editingCategory.set(cat);
     this.modalOpen.set(true);
   }
 
-  closeModal() {
+  public closeModal() {
     this.modalOpen.set(false);
   }
 

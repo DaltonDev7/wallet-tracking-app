@@ -91,7 +91,7 @@ export class IncomesService {
   ): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('No hay usuario autenticado');
-    console.log(input)
+
     const colRef = this.fixedIncomesCollection(user.uid);
     await addDoc(colRef, {
       name: input.name,
@@ -112,7 +112,7 @@ export class IncomesService {
     id: string,
     changes: Partial<FixedIncome>
   ): Promise<void> {
-    console.log("123456")
+
     const user = this.auth.currentUser;
     if (!user) throw new Error('No hay usuario autenticado');
 
