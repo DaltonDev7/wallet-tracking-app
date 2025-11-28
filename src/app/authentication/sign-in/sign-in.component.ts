@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService } from '../../core/services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sign-in',
@@ -12,7 +14,7 @@ export class SignInComponent {
   form: FormGroup;
   isSubmitting = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private authenticationServices: AuthService, private router: Router) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -39,14 +41,22 @@ export class SignInComponent {
     }, 800);
   }
 
-  signInWithGoogle() {
-    console.log('Google signup/login...');
-    // Si usas Firebase:
-    /*
-    this.authService.googleSignIn().then(() => {
-        this.router.navigate(['/dashboard']);
-    });
-    */
+
+
+  async signInWithGoogle() {
+    try {
+      this.isSubmitting = true;
+      const cred = await this.authenticationServices.signInWithGoogle();
+
+      console.log('Usuario autenticado con Google:', cred.user);
+      // Aquí rediriges al dashboard, home, etc.
+      await this.router.navigate(['/']);
+    } catch (error) {
+      console.error('Error al iniciar sesión con Google', error);
+      // Aquí luego puedes mostrar un mensaje de error en la UI
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 
 }

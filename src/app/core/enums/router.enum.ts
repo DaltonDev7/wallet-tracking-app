@@ -1,5 +1,7 @@
 export enum routesEnum{
-    category = "category",
+    category = "categories",
     signIn = "sign-in",
     signUp = "signUp",
+    income = "income",
+    expenses = "expenses",
 }

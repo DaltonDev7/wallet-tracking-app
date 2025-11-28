@@ -1,4 +1,4 @@
 export interface Combobox<T>{
-    label:T
-    value:string;
+    label:string
+    value:T;
 }

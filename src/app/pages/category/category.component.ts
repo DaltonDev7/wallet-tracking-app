@@ -1,25 +1,41 @@
-import { Component, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, Signal, signal } from '@angular/core';
 import { Category } from '../../core/interfaces/movements';
 import { CommonModule } from '@angular/common';
 import { AddEditCategoryModalComponent } from '../../modals/add-edit-category-modal/add-edit-category-modal.component';
+import { CategoryService } from '../../core/services/category.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-category',
   standalone: true,
-  imports: [CommonModule, AddEditCategoryModalComponent],
+  imports: [CommonModule, AddEditCategoryModalComponent, ConfirmModalComponent],
   templateUrl: './category.component.html',
   styleUrl: './category.component.scss'
 })
-export class CategoryComponent {
-  readonly categories = signal<Category[]>([
-    { id: '1', name: 'Comida', type: 'expense', color: '#f97373' },
-    { id: '2', name: 'Transporte', type: 'expense', color: '#60a5fa' },
-    { id: '3', name: 'Salario', type: 'income', color: '#34d399' },
-  ]);
+export class CategoryComponent implements OnInit {
 
+  private categoriesService = inject(CategoryService);
+
+  public showConfirmDelete = false;
   readonly modalOpen = signal(false);
   readonly modalMode = signal<'create' | 'edit'>('create');
   readonly editingCategory = signal<Category | null>(null);
+  public categoryPending: Category | null = null;
+
+  constructor() {
+    effect(() => {
+      console.log('Categorías cambiaron:', this.categories());
+    });
+  }
+
+  categories: Signal<Category[]> = toSignal(this.categoriesService.getUserCategories$(), {
+    initialValue: [] as Category[],
+  });
+
+  ngOnInit(): void {
+   
+  }
 
   openCreate() {
     this.modalMode.set('create');
@@ -37,28 +53,41 @@ export class CategoryComponent {
     this.modalOpen.set(false);
   }
 
-  saveCategory(data: Omit<Category, 'id'>) {
-    if (this.modalMode() === 'create') {
-      const newCategory: Category = {
-        id: crypto.randomUUID(),
-        ...data,
-      };
-      this.categories.update((cats) => [...cats, newCategory]);
-    } else {
-      const current = this.editingCategory();
-      if (!current) return;
-      this.categories.update((cats) =>
-        cats.map((c) => (c.id === current.id ? { ...current, ...data } : c)),
-      );
+  async saveCategory(categoryInput: { name: string; type: 'income' | 'expense'; color: string; active: boolean }) {
+    try {
+      if (this.modalMode() === 'create') {
+        await this.categoriesService.createCategory(categoryInput as any);
+      } else if (this.modalMode() === 'edit' && this.editingCategory()) {
+        await this.categoriesService.updateCategory(this.editingCategory()!.id, categoryInput as any).then(() => {
+
+        })
+      }
+      this.modalOpen.set(false);
+
+    } catch (err) {
+      console.error('Error guardando categoría', err);
+      // aquí podrías mostrar un toast
     }
-
-    this.modalOpen.set(false);
   }
 
-  deleteCategory(cat: Category) {
-    const ok = confirm(`¿Eliminar la categoría "${cat.name}"? Esta acción no se puede deshacer.`);
-    if (!ok) return;
-
-    this.categories.update((cats) => cats.filter((c) => c.id !== cat.id));
+  async deleteCategory(category: Category) {
+    this.categoryPending = category;
+    this.showConfirmDelete = true;
   }
+
+  async handleConfirmDelete(): Promise<void> {
+    if (!this.categoryPending) return;
+    if (!this.categoryPending.id) return;
+    await this.categoriesService.deleteCategory(this.categoryPending.id);
+    this.categoryPending = null;
+    this.showConfirmDelete = false;
+  }
+
+
+  handleCancelDelete(): void {
+    this.categoryPending = null;
+    this.showConfirmDelete = false;
+  }
+
+
 }

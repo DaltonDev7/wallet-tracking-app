@@ -1,4 +1,3 @@
-
 <div class="min-h-screen bg-slate-50">
   <div class="max-w-6xl mx-auto px-4 lg:px-6 py-6 lg:py-8">
 
@@ -16,16 +15,14 @@
       <!-- Botón de acción rápida (opcional) -->
       <button
         class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
-        (click)="onAddMovement()"
-      >
+        (click)="onAddMovement()">
         + Nuevo movimiento
       </button>
     </header>
 
     <!-- Filtros: Mes / Año -->
     <section
-      class="mb-6 flex flex-col gap-3 rounded-xl bg-white p-4 shadow-sm border border-slate-200 sm:flex-row sm:items-center sm:justify-between"
-    >
+      class="mb-6 flex flex-col gap-3 rounded-xl bg-white p-4 shadow-sm border border-slate-200 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="text-sm font-medium text-slate-700">
           Período seleccionado
@@ -36,18 +33,25 @@
       </div>
 
       <div class="flex flex-wrap gap-3 items-center">
-        <div>
+
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <input type="month" (change)="onPeriodChange()" [(ngModel)]="selectedMonth"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+
+        <!-- <div>
           <label class="block text-xs font-medium text-slate-500 mb-1">
             Mes
           </label>
           <select
             class="block w-36 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            [(ngModel)]="selectedMonth"
-            (change)="onPeriodChange()"
-          >
-            <option *ngFor="let month of months" [value]="month.value">
+            [(ngModel)]="selectedMonth" (change)="onPeriodChange()">
+            @for (month of months; track $index) {
+            <option [value]="month.value">
               {{ month.label }}
             </option>
+            }
           </select>
         </div>
 
@@ -57,14 +61,14 @@
           </label>
           <select
             class="block w-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            [(ngModel)]="selectedYear"
-            (change)="onPeriodChange()"
-          >
-            <option *ngFor="let year of years" [value]="year">
+            [(ngModel)]="selectedYear" (change)="onPeriodChange()">
+            @for (year of years; track $index) {
+            <option [value]="year">
               {{ year }}
             </option>
+            }
           </select>
-        </div>
+        </div> -->
       </div>
     </section>
 
@@ -101,10 +105,7 @@
         <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
           Remanente
         </p>
-        <p
-          class="mt-2 text-xl font-semibold"
-          [ngClass]="remaining >= 0 ? 'text-emerald-700' : 'text-rose-700'"
-        >
+        <p class="mt-2 text-xl font-semibold" [ngClass]="remaining >= 0 ? 'text-emerald-700' : 'text-rose-700'">
           {{ remaining | currency:'DOP':'symbol-narrow':'1.0-0' }}
         </p>
         <p class="mt-1 text-xs text-slate-500">
@@ -113,122 +114,193 @@
       </article>
     </section>
 
-    <!-- Tabla de movimientos -->
-    <section class="rounded-xl bg-white border border-slate-200 shadow-sm">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-        <h2 class="text-sm font-medium text-slate-700">
-          Movimientos del mes
+    <!-- Gráfica + Tabla -->
+    <section class="mb-6 space-y-6">
+
+      <!-- Gráfica arriba -->
+      <article class="rounded-xl bg-white p-4 border border-slate-200 shadow-sm flex flex-col">
+        <h2 class="text-sm font-medium text-slate-700 text-center">
+          ¿En qué se va tu dinero?
         </h2>
+        <p class="mt-1 text-xs text-slate-500 text-center">
+          Distribución de tus gastos por categoría en el período seleccionado.
+        </p>
 
-        <!-- Búsqueda rápida (opcional) -->
-        <div class="relative">
-          <input
-            type="text"
-            class="w-48 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            placeholder="Buscar por descripción..."
-            [(ngModel)]="searchTerm"
-            (input)="onSearchChange()"
-          />
+        <!-- Contenedor responsive -->
+        <div class="mt-4 flex items-center justify-center">
+          <div class="relative w-full max-w-xs sm:max-w-sm md:max-w-md aspect-square">
+            <canvas baseChart [data]="expenseDoughnutData" [type]="'doughnut'" [options]="expenseDoughnutOptions"
+              class="absolute inset-0 w-full h-full">
+            </canvas>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
-          <thead class="bg-slate-50">
-            <tr>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Tipo
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Categoría
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Descripción
-              </th>
-              <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Monto
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Fecha
-              </th>
-              <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr *ngFor="let movement of filteredMovements">
-              <!-- Tipo -->
-              <td class="px-4 py-2 whitespace-nowrap">
-                <span
-                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                  [ngClass]="movement.type === 'income'
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-rose-50 text-rose-700'"
-                >
-                  {{ movement.type === 'income' ? 'Ingreso' : 'Gasto' }}
-                </span>
-              </td>
+      <!-- Tabla abajo -->
+      <section class="rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+          <h2 class="text-sm font-medium text-slate-700">
+            Movimientos del mes
+          </h2>
 
-              <!-- Categoría -->
-              <td class="px-4 py-2 whitespace-nowrap text-slate-700">
-                {{ movement.category }}
-              </td>
+          <!-- Búsqueda -->
+          <div class="relative">
+            <input type="text" class="w-48 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm
+               focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              placeholder="Buscar por descripción..." [(ngModel)]="searchTerm" (input)="onSearchChange()" />
+          </div>
+        </div>
 
-              <!-- Descripción -->
-              <td class="px-4 py-2 whitespace-nowrap text-slate-600">
-                {{ movement.description || '-' }}
-              </td>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">Tipo</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">Categoría
+                </th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">Descripción
+                </th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">Monto</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">Fecha</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">Acciones
+                </th>
+              </tr>
+            </thead>
 
-              <!-- Monto -->
-              <td
-                class="px-4 py-2 whitespace-nowrap text-right font-medium"
-                [ngClass]="movement.type === 'income'
-                  ? 'text-emerald-600'
-                  : 'text-rose-600'"
-              >
-                {{ movement.amount | currency:'DOP':'symbol-narrow':'1.0-0' }}
-              </td>
+            <tbody class="divide-y divide-slate-100">
 
-              <!-- Fecha -->
-              <td class="px-4 py-2 whitespace-nowrap text-slate-500">
-                {{ movement.date | date:'dd/MM/yyyy' }}
-              </td>
+              @for (movement of pagedMovements; track $index) {
+              <tr>
+                <!-- Tipo -->
+                <td class="px-4 py-2 whitespace-nowrap">
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" [ngClass]="movement.type === 'income'
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-rose-50 text-rose-700'">
+                    {{ movement.type === 'income' ? 'Ingreso' : 'Gasto' }}
+                  </span>
+                </td>
 
-              <!-- Acciones -->
-              <td class="px-4 py-2 whitespace-nowrap text-right">
-                <button
-                  class="text-xs font-medium text-sky-600 hover:text-sky-800 mr-3"
-                  (click)="onEditMovement(movement)"
-                >
-                  Editar
-                </button>
-                <button
-                  class="text-xs font-medium text-rose-600 hover:text-rose-800"
-                  (click)="onDeleteMovement(movement)"
-                >
-                  Eliminar
-                </button>
-              </td>
-            </tr>
+                <!-- Categoría -->
+                <td class="px-4 py-2 whitespace-nowrap text-slate-700">
+                  {{ movement.categoryName }}
+                </td>
 
-            <!-- Empty state -->
-            <tr *ngIf="filteredMovements.length === 0">
-              <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-500">
-                No hay movimientos registrados para este período.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                <!-- Descripción -->
+                <td class="px-4 py-2 whitespace-nowrap text-slate-600">
+                  {{ movement.description || '-' }}
+                </td>
+
+                <!-- Monto -->
+                <td class="px-4 py-2 whitespace-nowrap text-right font-medium" [ngClass]="movement.type === 'income'
+                ? 'text-emerald-600'
+                : 'text-rose-600'">
+                  {{ movement.amount | currency:'DOP':'symbol-narrow':'1.0-0' }}
+                </td>
+
+                <!-- Fecha -->
+                <td class="px-4 py-2 whitespace-nowrap text-slate-500">
+                  {{ movement.date | date:'dd/MM/yyyy' }}
+                </td>
+
+                <!-- Acciones -->
+                <td class="px-4 py-2 whitespace-nowrap text-right">
+                  <div class="inline-flex items-center gap-2">
+
+                    <!-- Botón editar -->
+                    <button class="inline-flex items-center justify-center rounded-full border border-sky-100 bg-sky-50 p-1.5
+             text-sky-700 hover:bg-sky-100 hover:border-sky-200 focus:outline-none focus:ring-2
+             focus:ring-sky-500 focus:ring-offset-1" (click)="onEditMovement(movement)" type="button">
+                      <!-- Icono lápiz (Heroicons outline) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16.862 3.487a2.25 2.25 0 0 1 3.182 3.182l-9.193 9.193a4.5 4.5 0 0 1-1.72 1.073l-3.018.94.94-3.018a4.5 4.5 0 0 1 1.073-1.72l9.193-9.193z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5 16.5 6" />
+                      </svg>
+                      <span class="sr-only">Editar movimiento</span>
+                    </button>
+
+                    <!-- Botón eliminar -->
+                    <button class="inline-flex items-center justify-center rounded-full border border-rose-100 bg-rose-50 p-1.5
+             text-rose-600 hover:bg-rose-100 hover:border-rose-200 focus:outline-none focus:ring-2
+             focus:ring-rose-500 focus:ring-offset-1" (click)="onDeleteMovement(movement)" type="button">
+                      <!-- Icono papelera (Heroicons outline) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.75 4.5h4.5m-7.5 3h10.5m-1.5 0v10.125A2.625 2.625 0 0 1 13.125 20.25h-2.25A2.625 2.625 0 0 1 8.25 17.625V7.5m3 3v6m3-6v6" />
+                      </svg>
+                      <span class="sr-only">Eliminar movimiento</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              }
+
+              <!-- Empty state -->
+              @if (filteredMovements.length === 0) {
+              <tr>
+                <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-500">
+                  No hay movimientos registrados para este período.
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+          <!-- Footer de paginación -->
+          <div class="flex items-center justify-between px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
+            <div>
+              @if (filteredMovements.length > 0) {
+              <span>
+                Mostrando
+                {{ (currentPage - 1) * pageSize + 1 }}
+                –
+                {{ Math.min(currentPage * pageSize, filteredMovements.length) }}
+                de
+                {{ filteredMovements.length }}
+                movimientos
+              </span>
+              } @else {
+              <span>No hay movimientos para paginar.</span>
+              }
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium
+             hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed" (click)="prevPage()"
+                [disabled]="currentPage === 1">
+                Anterior
+              </button>
+
+              <span class="text-[11px] text-slate-500">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
+
+              <button type="button" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium
+             hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed" (click)="nextPage()"
+                [disabled]="currentPage === totalPages">
+                Siguiente
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
     </section>
+
+
 
   </div>
 </div>
 
 
-<app-create-movement-modal
-  [open]="isNewMovementOpen()"
-  (close)="closeModal()"
-  (save)="handleSave($event)"
-></app-create-movement-modal>
+<app-create-movement-modal [open]="isNewMovementOpen()" [initialMovement]="editingMovement()"
+  (close)="onCloseMovementModal()" (save)="onSaveMovement($event)">
+</app-create-movement-modal>
+
+@if (showConfirmDelete) {
+<app-confirm-modal [confirmLabel]="'Eliminar'" [cancelLabel]="'Cancelar'" [danger]="true"
+  (confirmed)="handleConfirmDelete()" (cancelled)="handleCancelDelete()">
+</app-confirm-modal>
+}

@@ -1,127 +1,177 @@
 @if (open) {
-<!-- Overlay -->
-<div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4" aria-modal="true" role="dialog">
+  <!-- Overlay -->
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4"
+    aria-modal="true"
+    role="dialog"
+  >
     <!-- Contenedor modal -->
     <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl outline-none">
-        <!-- Header -->
-        <div class="mb-4 flex items-start justify-between">
-            <div>
-                <h2 class="text-lg font-semibold text-slate-900">
-                    Nuevo movimiento
-                </h2>
-                <p class="mt-1 text-xs text-slate-500">
-                    Registra un ingreso o un gasto para este período.
-                </p>
-            </div>
-            <button type="button" (click)="handleClose()" class="inline-flex h-7 w-7 items-center justify-center rounded-full
-                 bg-slate-100 text-xs text-slate-500 hover:bg-slate-200" aria-label="Cerrar">
-                ✕
+      <!-- Header -->
+      <div class="mb-4 flex items-start justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">
+            {{ isEditMode ? 'Editar movimiento' : 'Nuevo movimiento' }}
+          </h2>
+          <p class="mt-1 text-xs text-slate-500">
+            {{
+              isEditMode
+                ? 'Actualiza la información de este movimiento.'
+                : 'Registra un ingreso o un gasto para este período.'
+            }}
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="handleClose()"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-full
+                 bg-slate-100 text-xs text-slate-500 hover:bg-slate-200"
+          aria-label="Cerrar"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Formulario -->
+      <form
+        [formGroup]="form"
+        (ngSubmit)="handleSubmit()"
+        class="space-y-4"
+      >
+        <!-- Tipo -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-600">
+            Tipo de movimiento
+          </label>
+          <div
+            class="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-xs"
+          >
+            <!-- Gasto -->
+            <button
+              type="button"
+              (click)="form.get('type')?.setValue('expense')"
+              class="rounded-full px-3 py-1 transition font-medium"
+              [ngClass]="{
+                'bg-red-100 text-red-600 shadow-sm':
+                  form.get('type')?.value === 'expense',
+                'text-slate-500':
+                  form.get('type')?.value !== 'expense'
+              }"
+            >
+              Gasto
             </button>
+
+            <!-- Ingreso -->
+            <button
+              type="button"
+              (click)="form.get('type')?.setValue('income')"
+              class="rounded-full px-3 py-1 transition font-medium"
+              [ngClass]="{
+                'bg-emerald-100 text-emerald-600 shadow-sm':
+                  form.get('type')?.value === 'income',
+                'text-slate-500':
+                  form.get('type')?.value !== 'income'
+              }"
+            >
+              Ingreso
+            </button>
+          </div>
         </div>
 
-        <!-- Formulario -->
-        <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="space-y-4">
-
-            <!-- Tipo -->
-            <div>
-                <label class="mb-1 block text-xs font-medium text-slate-600">
-                    Tipo de movimiento
-                </label>
-                <div class="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-xs">
-
-                    <!-- Gasto -->
-                    <button type="button" (click)="form.get('type')?.setValue('expense')"
-                        class="rounded-full px-3 py-1 transition font-medium" [ngClass]="{
-      'bg-red-100 text-red-600 shadow-sm': form.get('type')?.value === 'expense',
-      'text-slate-500': form.get('type')?.value !== 'expense'
-    }">
-                        Gasto
-                    </button>
-
-                    <!-- Ingreso -->
-                    <button type="button" (click)="form.get('type')?.setValue('income')"
-                        class="rounded-full px-3 py-1 transition font-medium" [ngClass]="{
-      'bg-emerald-100 text-emerald-600 shadow-sm': form.get('type')?.value === 'income',
-      'text-slate-500': form.get('type')?.value !== 'income'
-    }">
-                        Ingreso
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- Monto + Fecha -->
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="mb-1 block text-xs font-medium text-slate-600">
-                        Monto
-                    </label>
-                    <div class="relative">
-                       
-                        <input  formControlName="amount"  mask="separator.2" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm
+        <!-- Monto + Fecha -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs font-medium text-slate-600">
+              Monto
+            </label>
+            <div class="relative">
+              <input
+                formControlName="amount"
+                mask="separator.2"
+                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm
                        outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
-                            placeholder="0.00" />
-                    </div>
-                    @if (form.get('amount')?.invalid && form.get('amount')?.touched) {
-                    <p class="mt-1 text-[11px] text-red-500">
-                        Ingresa un monto válido mayor a 0.
-                    </p>
-                    }
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-xs font-medium text-slate-600">
-                        Fecha
-                    </label>
-                    <input type="date" formControlName="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
-                     outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5" />
-                </div>
+                placeholder="0.00"
+              />
             </div>
+            @if (form.get('amount')?.invalid && form.get('amount')?.touched) {
+              <p class="mt-1 text-[11px] text-red-500">
+                Ingresa un monto válido mayor a 0.
+              </p>
+            }
+          </div>
 
-            <!-- Categoría -->
-            <div>
-                <label class="mb-1 block text-xs font-medium text-slate-600">
-                    Categoría
-                </label>
-                <select formControlName="category" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
+          <div>
+            <label class="mb-1 block text-xs font-medium text-slate-600">
+              Fecha
+            </label>
+            <input
+              type="date"
+              formControlName="date"
+              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
+                     outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
+            />
+          </div>
+        </div>
+
+        <!-- Categoría -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-600">
+            Categoría
+          </label>
+          <select
+            formControlName="category"
+            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
                    text-slate-700 outline-none ring-1 ring-transparent
-                   focus:border-slate-900 focus:ring-slate-900/5">
-                    <option value="" disabled selected>Selecciona una categoría</option>
-                    @for (cat of categories; track cat.value) {
-                    <option [value]="cat.value">{{ cat.label }}</option>
-                    }
-                </select>
-                @if (form.get('category')?.invalid && form.get('category')?.touched) {
-                <p class="mt-1 text-[11px] text-red-500">
-                    Selecciona una categoría.
-                </p>
-                }
-            </div>
+                   focus:border-slate-900 focus:ring-slate-900/5"
+          >
+            <option value="" disabled>Selecciona una categoría</option>
+            @for (cat of categories; track cat.value) {
+              <option [value]="cat.value">
+                {{ cat.label }}
+              </option>
+            }
+          </select>
+          @if (form.get('category')?.invalid && form.get('category')?.touched) {
+            <p class="mt-1 text-[11px] text-red-500">
+              Selecciona una categoría.
+            </p>
+          }
+        </div>
 
-            <!-- Nota -->
-            <div>
-                <label class="mb-1 block text-xs font-medium text-slate-600">
-                    Nota (opcional)
-                </label>
-                <textarea formControlName="note" rows="2" class="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
+        <!-- Nota / Descripción -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-600">
+            Nota (opcional)
+          </label>
+          <textarea
+            formControlName="description"
+            rows="2"
+            class="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
                    outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
-                    placeholder="Ej: Almuerzo con amigos, pago tarjeta, etc."></textarea>
-            </div>
+            placeholder="Ej: Almuerzo con amigos, pago tarjeta, etc."
+          ></textarea>
+        </div>
 
-            <!-- Acciones -->
-            <div class="mt-2 flex items-center justify-end gap-2 pt-2">
-                <button type="button" (click)="handleClose()"
-                    class="rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100">
-                    Cancelar
-                </button>
-                <button type="submit" [disabled]="form.invalid" class="rounded-lg bg-slate-900 px-4 py-2 text-xs font-medium text-white
+        <!-- Acciones -->
+        <div class="mt-2 flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            (click)="handleClose()"
+            class="rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="form.invalid"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-xs font-medium text-white
                    shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed
-                   disabled:bg-slate-300 disabled:text-slate-600">
-                    Guardar movimiento
-                </button>
-            </div>
-        </form>
+                   disabled:bg-slate-300 disabled:text-slate-600"
+          >
+            {{ isEditMode ? 'Guardar cambios' : 'Guardar movimiento' }}
+          </button>
+        </div>
+      </form>
     </div>
-</div>
+  </div>
 }
