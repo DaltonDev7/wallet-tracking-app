@@ -5,6 +5,7 @@ import { AddEditExpensesModalComponent } from '../../modals/add-edit-expenses-mo
 import { FixedExpense } from '../../core/interfaces/movements';
 import { ExpensesService } from '../../core/services/expenses.service';
 import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
+import { CategoryService } from '../../core/services/category.service';
 
 
 
@@ -20,6 +21,7 @@ export class ExpensesComponent implements OnInit {
   // Lista de gastos fijos
   public fixedExpenses: FixedExpense[] = [];
   private fixedExpensesService = inject(ExpensesService);
+  private categoryServices = inject(CategoryService);
 
   // Resumen
   public activeFixedExpensesCount = 0;
@@ -28,6 +30,8 @@ export class ExpensesComponent implements OnInit {
 
   private allFixedExpenses: FixedExpense[] = [];
   public expensePendingDelete: FixedExpense | null = null;
+  public categoriesMap: Record<string, string> = {};
+
 
   public selectedMonthToApply!: string;
 
@@ -36,15 +40,26 @@ export class ExpensesComponent implements OnInit {
 
   ngOnInit(): void {
 
-
     this.selectedMonthToApply = this.getCurrentMonthForInput();
-    this.onApplyFixedExpensesToMonth()
+
+
+    this.categoryServices.getUserCategories$().subscribe(categories => {
+      this.categoriesMap = categories.reduce((acc, c) => {
+        acc[c.id] = c.name;
+        return acc;
+      }, {} as Record<string, string>);
+
+
+      this.onApplyFixedExpensesToMonth()
+    });
+
+
     this.recalculateSummary();
   }
 
 
   onMonthChange() {
-   this.onApplyFixedExpensesToMonth()
+    this.onApplyFixedExpensesToMonth()
   }
 
   onAddFixedExpense(): void {
@@ -123,12 +138,15 @@ export class ExpensesComponent implements OnInit {
   onApplyFixedExpensesToMonth(): void {
 
     if (!this.selectedMonthToApply) return;
-  
+
     this.fixedExpensesService
       .getUserFixedExpensesByMonth$(this.selectedMonthToApply)
       .subscribe(expenses => {
-        console.log(expenses)
-        this.fixedExpenses = expenses;
+        this.fixedExpenses = expenses.map(exp => ({
+          ...exp,
+          category: this.categoriesMap[exp.category] || 'Sin categoría'
+        }));
+
         this.recalculateSummary();
       });
   }

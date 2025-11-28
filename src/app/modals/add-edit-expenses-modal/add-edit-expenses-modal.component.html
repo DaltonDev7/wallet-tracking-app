@@ -13,37 +13,26 @@
         </p>
       </div>
 
-      <button
-        type="button"
-        (click)="onClose()"
+      <button type="button" (click)="onClose()"
         class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300"
-        aria-label="Cerrar"
-      >
+        aria-label="Cerrar">
         ✕
       </button>
     </header>
 
     <!-- Formulario -->
-    <form
-      [formGroup]="form"
-      (ngSubmit)="onSubmit()"
-      class="px-5 py-4 space-y-4"
-    >
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="px-5 py-4 space-y-4">
       <!-- Nombre -->
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1">
           Nombre del gasto <span class="text-rose-500">*</span>
         </label>
-        <input
-          type="text"
-          formControlName="name"
-          placeholder="Ej: Renta, luz, internet"
+        <input type="text" formControlName="name" placeholder="Ej: Renta, luz, internet"
           class="w-full rounded-lg border px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
           [ngClass]="{
             'border-slate-300': !hasError('name','required') && !hasError('name','maxlength'),
             'border-rose-400': hasError('name','required') || hasError('name','maxlength')
-          }"
-        />
+          }" />
         <p *ngIf="hasError('name','required')" class="mt-1 text-[11px] text-rose-500">
           El nombre es obligatorio.
         </p>
@@ -59,11 +48,8 @@
           <label class="block text-xs font-medium text-slate-600 mb-1">
             Mes de aplicación <span class="text-rose-500">*</span>
           </label>
-          <input
-            type="month"
-            formControlName="startDate"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-          />
+          <input type="month" formControlName="startDate"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500" />
           <p class="mt-1 text-[11px] text-slate-400">
             Mes desde el cual quieres considerar este gasto fijo.
           </p>
@@ -80,18 +66,13 @@
             </p>
           </div>
 
-          <button
-            type="button"
-            (click)="form.get('active')?.setValue(!form.get('active')?.value)"
+          <button type="button" (click)="form.get('active')?.setValue(!form.get('active')?.value)"
             class="inline-flex items-center gap-2 rounded-full px-3 py-1 border text-xs font-medium transition-colors"
             [ngClass]="form.get('active')?.value
               ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              : 'bg-slate-50 border-slate-200 text-slate-500'"
-          >
-            <span
-              class="h-2 w-2 rounded-full"
-              [ngClass]="form.get('active')?.value ? 'bg-emerald-500' : 'bg-slate-400'"
-            ></span>
+              : 'bg-slate-50 border-slate-200 text-slate-500'">
+            <span class="h-2 w-2 rounded-full"
+              [ngClass]="form.get('active')?.value ? 'bg-emerald-500' : 'bg-slate-400'"></span>
             {{ form.get('active')?.value ? 'Activo' : 'Inactivo' }}
           </button>
         </div>
@@ -103,21 +84,15 @@
           Monto mensual estimado <span class="text-rose-500">*</span>
         </label>
         <div class="relative">
-          <span
-            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-xs text-slate-400"
-          >
+          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-xs text-slate-400">
             DOP
           </span>
-          <input
-            formControlName="amount"
-            mask="separator.2"
-            placeholder="0.00"
+          <input formControlName="amount" mask="separator.2" placeholder="0.00"
             class="w-full rounded-lg border pl-12 pr-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
             [ngClass]="{
               'border-slate-300': !hasError('amount','required') && !hasError('amount','min'),
               'border-rose-400': hasError('amount','required') || hasError('amount','min')
-            }"
-          />
+            }" />
         </div>
         <p *ngIf="hasError('amount','required')" class="mt-1 text-[11px] text-rose-500">
           El monto es obligatorio.
@@ -127,34 +102,47 @@
         </p>
       </div>
 
+
+      <!-- categorias -->
+      <div>
+        <label class="mb-1 block text-xs font-medium text-slate-600">
+          Categoría <span class="text-rose-500">*</span>
+        </label>
+        <select formControlName="category" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
+                   text-slate-700 outline-none ring-1 ring-transparent
+                   focus:border-slate-900 focus:ring-slate-900/5">
+          <option value="" disabled>Selecciona una categoría</option>
+          @for (cat of categoryList; track cat.value) {
+          <option [value]="cat.value">
+            {{ cat.label }}
+          </option>
+          }
+        </select>
+        @if (form.get('category')?.invalid && form.get('category')?.touched) {
+        <p class="mt-1 text-[11px] text-red-500">
+          Selecciona una categoría.
+        </p>
+        }
+      </div>
+
       <!-- Notas -->
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1">
           Notas (opcional)
         </label>
-        <textarea
-          formControlName="notes"
-          rows="2"
-          placeholder="Ej: Se factura el día 15, incluye mantenimiento, etc."
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-        ></textarea>
+        <textarea formControlName="notes" rows="2" placeholder="Ej: Se factura el día 15, incluye mantenimiento, etc."
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"></textarea>
       </div>
 
       <!-- Footer -->
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
-        <button
-          type="button"
-          (click)="onClose()"
-          class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
-        >
+        <button type="button" (click)="onClose()"
+          class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
           Cancelar
         </button>
 
-        <button
-          type="submit"
-          [disabled]="form.invalid"
-          class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
-        >
+        <button type="submit" [disabled]="form.invalid"
+          class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1">
           {{ isEditMode ? 'Guardar cambios' : 'Crear gasto fijo' }}
         </button>
       </div>

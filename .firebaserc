@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "wallet-tracking-app-51212"
-  }
+    "default": "wallet-tracking-app-dev",
+    "wallet-tracking-app-dev": "wallet-tracking-app-dev"
+  },
+  "targets": {},
+  "etags": {}
 }

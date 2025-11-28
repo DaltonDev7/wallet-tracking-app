@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/wallet-tracking-app",
+    "public": "dist/wallet-tracking-app/browser",
     "ignore": [
       "firebase.json",
       "**/.*",

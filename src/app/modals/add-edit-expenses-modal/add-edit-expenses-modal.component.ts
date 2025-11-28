@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { FixedExpense } from '../../core/interfaces/movements';
+import { Category, FixedExpense } from '../../core/interfaces/movements';
+import { CategoryService } from '../../core/services/category.service';
+import { filter, map } from 'rxjs';
+import { Combobox } from '../../core/interfaces/combobox';
 
 
 
@@ -10,15 +13,18 @@ import { FixedExpense } from '../../core/interfaces/movements';
 @Component({
   selector: 'app-add-edit-expenses-modal',
   standalone: true,
-  imports: [CommonModule,ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './add-edit-expenses-modal.component.html',
   styleUrl: './add-edit-expenses-modal.component.scss'
 })
-export class AddEditExpensesModalComponent  implements OnInit, OnChanges {
+export class AddEditExpensesModalComponent implements OnInit, OnChanges {
   @Input() expense: FixedExpense | null = null;
 
   @Output() closed = new EventEmitter<void>();
   @Output() saved = new EventEmitter<FixedExpense>();
+
+  public categoryServices = inject(CategoryService)
+  public categoryList: Combobox<string>[] = []
 
   form!: FormGroup;
 
@@ -26,13 +32,31 @@ export class AddEditExpensesModalComponent  implements OnInit, OnChanges {
     return !!this.expense;
   }
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
     this.buildForm();
     if (this.expense) {
       this.patchForm(this.expense);
     }
+
+    // 1. Suscribirse a las categorías del usuario
+    this.categoryServices
+      .getUserCategories$()
+      .subscribe((cats) => {
+
+        const categoryMapper = cats.filter((category) => category.type === "expense").map((category) => {
+          return {
+            label: category.name, // lo que se muestra
+            value: category.id,   // lo que se guarda en el form
+          }
+        })
+
+        this.categoryList = categoryMapper
+
+        console.log(categoryMapper)
+      });
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -52,6 +76,7 @@ export class AddEditExpensesModalComponent  implements OnInit, OnChanges {
       active: [true],
       amount: [null, [Validators.required, Validators.min(0)]],
       notes: [''],
+      category: ['', [Validators.required]]
     });
   }
 
@@ -99,7 +124,7 @@ export class AddEditExpensesModalComponent  implements OnInit, OnChanges {
     const payload: FixedExpense = {
       id: this.expense?.id ?? '',
       name: raw.name.trim(),
-      category: this.expense?.category ?? '', // si después agregas categoría en el modal, la mapearás aquí
+      category: raw.category ?? '', // si después agregas categoría en el modal, la mapearás aquí
       amount: amountNumber,
       active: raw.active ?? true,
       startDate: raw.startDate, // 'YYYY-MM' desde el input
