@@ -53,8 +53,6 @@ export class AddEditExpensesModalComponent implements OnInit, OnChanges {
         })
 
         this.categoryList = categoryMapper
-
-        console.log(categoryMapper)
       });
 
   }

@@ -47,8 +47,6 @@ export class SignInComponent {
     try {
       this.isSubmitting = true;
       const cred = await this.authenticationServices.signInWithGoogle();
-
-      console.log('Usuario autenticado con Google:', cred.user);
       // Aquí rediriges al dashboard, home, etc.
       await this.router.navigate(['/']);
     } catch (error) {

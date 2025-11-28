@@ -137,9 +137,6 @@ export class DashboardComponent implements OnInit {
         error: (err) => console.error('Error cargando categorías', err),
       });
 
-
-    console.log(this.categoryMap)
-
   }
 
   private getCurrentMonth(): string {
@@ -367,9 +364,6 @@ export class DashboardComponent implements OnInit {
     const expensesFixedActive = await firstValueFrom(
       this.expenseServices.getUserFixedExpensesByMonth$(this.selectedMonth)
     );
-
-    console.log(expenses)
-    console.log(expensesFixedActive)
 
     // 3) Si no hay ni gastos variables ni fijos → gráfico vacío
     if (!expenses.length && !expensesFixedActive.length) {
