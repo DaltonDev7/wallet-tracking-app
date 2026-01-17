@@ -7,11 +7,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
 
 @Component({
-  selector: 'app-category',
-  standalone: true,
-  imports: [CommonModule, AddEditCategoryModalComponent, ConfirmModalComponent],
-  templateUrl: './category.component.html',
-  styleUrl: './category.component.scss'
+    selector: 'app-category',
+    imports: [CommonModule, AddEditCategoryModalComponent, ConfirmModalComponent],
+    templateUrl: './category.component.html',
+    styleUrl: './category.component.scss'
 })
 export class CategoryComponent implements OnInit {
 

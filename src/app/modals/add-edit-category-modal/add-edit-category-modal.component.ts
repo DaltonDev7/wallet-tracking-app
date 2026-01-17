@@ -4,11 +4,10 @@ import { Category, CategoryType } from '../../core/interfaces/movements';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-add-edit-category-modal',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './add-edit-category-modal.component.html',
-  styleUrl: './add-edit-category-modal.component.scss'
+    selector: 'app-add-edit-category-modal',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './add-edit-category-modal.component.html',
+    styleUrl: './add-edit-category-modal.component.scss'
 })
 export class AddEditCategoryModalComponent implements OnChanges {
   @Input() open = false;

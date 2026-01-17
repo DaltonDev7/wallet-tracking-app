@@ -11,11 +11,10 @@ import { Combobox } from '../../core/interfaces/combobox';
 
 
 @Component({
-  selector: 'app-add-edit-expenses-modal',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './add-edit-expenses-modal.component.html',
-  styleUrl: './add-edit-expenses-modal.component.scss'
+    selector: 'app-add-edit-expenses-modal',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './add-edit-expenses-modal.component.html',
+    styleUrl: './add-edit-expenses-modal.component.scss'
 })
 export class AddEditExpensesModalComponent implements OnInit, OnChanges {
   @Input() expense: FixedExpense | null = null;

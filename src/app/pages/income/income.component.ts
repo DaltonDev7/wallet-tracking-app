@@ -7,11 +7,10 @@ import { IncomesService } from '../../core/services/incomes.service';
 import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
 
 @Component({
-  selector: 'app-income',
-  standalone: true,
-  imports: [CommonModule, FormsModule, AddEditIncomeModalComponent, ConfirmModalComponent],
-  templateUrl: './income.component.html',
-  styleUrl: './income.component.scss'
+    selector: 'app-income',
+    imports: [CommonModule, FormsModule, AddEditIncomeModalComponent, ConfirmModalComponent],
+    templateUrl: './income.component.html',
+    styleUrl: './income.component.scss'
 })
 export class IncomeComponent implements OnInit {
 

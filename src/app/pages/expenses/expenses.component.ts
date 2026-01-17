@@ -8,11 +8,10 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
 import { CategoryService } from '../../core/services/category.service';
 
 @Component({
-  selector: 'app-expenses',
-  standalone: true,
-  imports: [CommonModule, FormsModule, AddEditExpensesModalComponent, ConfirmModalComponent],
-  templateUrl: './expenses.component.html',
-  styleUrl: './expenses.component.scss'
+    selector: 'app-expenses',
+    imports: [CommonModule, FormsModule, AddEditExpensesModalComponent, ConfirmModalComponent],
+    templateUrl: './expenses.component.html',
+    styleUrl: './expenses.component.scss'
 })
 export class ExpensesComponent implements OnInit {
 

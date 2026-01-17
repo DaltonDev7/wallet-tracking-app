@@ -17,21 +17,20 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
 import { ExpensesService } from '../../core/services/expenses.service';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    DatePipe,
-    CurrencyPipe,
-    CreateMovementModalComponent,
-    NgChartsModule,
-    ReactiveFormsModule,
-    ConfirmModalComponent
-  ],
-  providers: [DecimalPipe],
-  templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+    selector: 'app-dashboard',
+    imports: [
+        CommonModule,
+        FormsModule,
+        DatePipe,
+        CurrencyPipe,
+        CreateMovementModalComponent,
+        NgChartsModule,
+        ReactiveFormsModule,
+        ConfirmModalComponent
+    ],
+    providers: [DecimalPipe],
+    templateUrl: './dashboard.component.html',
+    styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
 

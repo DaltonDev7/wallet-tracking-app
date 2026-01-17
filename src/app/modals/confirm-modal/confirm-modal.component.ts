@@ -2,11 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-confirm-modal',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './confirm-modal.component.html',
-  styleUrl: './confirm-modal.component.scss'
+    selector: 'app-confirm-modal',
+    imports: [CommonModule],
+    templateUrl: './confirm-modal.component.html',
+    styleUrl: './confirm-modal.component.scss'
 })
 export class ConfirmModalComponent {
   @Input() title = 'Confirmar acción';
