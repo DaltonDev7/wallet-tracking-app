@@ -1,14 +1,13 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
-import { Movement } from './core/interfaces/movements';
-import { FooterComponent } from './components/footer/footer.component';
+
 
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, FooterComponent],
+    standalone : true,
+    imports: [RouterOutlet],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })

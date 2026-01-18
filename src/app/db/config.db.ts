@@ -13,7 +13,7 @@ import { initializeApp } from "firebase/app";
 //   appId: "1:76181847288:web:303e45c6d8c47108eb0f0d"
 // };
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyC0mMTa0IF0Jw-kzi3u83BOklNmTJgAllY",
   authDomain: "wallet-tracking-app-dev.firebaseapp.com",
   projectId: "wallet-tracking-app-dev",
@@ -24,4 +24,5 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const appConfigFirebase = initializeApp(firebaseConfig);
+// export const appConfigFirebase = initializeApp(firebaseConfig);
+

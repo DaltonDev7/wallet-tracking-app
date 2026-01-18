@@ -9,10 +9,11 @@ import { Combobox } from '../../core/interfaces/combobox';
 import { MovementsService } from '../../core/services/movement.service';
 
 @Component({
-    selector: 'app-create-movement-modal',
-    imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective],
-    templateUrl: './create-movement-modal.component.html',
-    styleUrl: './create-movement-modal.component.scss'
+  selector: 'app-create-movement-modal',
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective],
+  templateUrl: './create-movement-modal.component.html',
+  styleUrl: './create-movement-modal.component.scss'
 })
 export class CreateMovementModalComponent implements OnInit, OnChanges {
 

@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-notfound',
+    standalone: true,
     imports: [CommonModule, RouterLink],
     templateUrl: './notfound.component.html',
     styleUrl: './notfound.component.scss'

@@ -87,26 +87,9 @@
     </section>
 
     <!-- Gráfica + Tabla -->
-    <section class="mb-6 space-y-6">
+   <section class="mb-6 space-y-6"> 
 
-      <!-- Gráfica arriba -->
-      <article class="rounded-xl bg-white p-4 border border-slate-200 shadow-sm flex flex-col">
-        <h2 class="text-sm font-medium text-slate-700 text-center">
-          ¿En qué se va tu dinero?
-        </h2>
-        <p class="mt-1 text-xs text-slate-500 text-center">
-          Distribución de tus gastos por categoría en el período seleccionado.
-        </p>
 
-        <!-- Contenedor responsive -->
-        <div class="mt-4 flex items-center justify-center">
-          <div class="relative w-full max-w-xs sm:max-w-sm md:max-w-md aspect-square">
-            <canvas baseChart [data]="expenseDoughnutData" [type]="'doughnut'" [options]="expenseDoughnutOptions"
-              class="absolute inset-0 w-full h-full">
-            </canvas>
-          </div>
-        </div>
-      </article>
 
       <!-- Tabla abajo -->
       <section class="rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col">

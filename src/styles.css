@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+@import "primeicons/primeicons.css";
+
+
+@import "@fontsource/inter/400.css";
+
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+html { font-size: 14px; } /* más compacto */

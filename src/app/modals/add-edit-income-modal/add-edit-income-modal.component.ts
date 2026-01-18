@@ -5,10 +5,11 @@ import { NgxMaskDirective } from 'ngx-mask';
 import { FixedIncome } from '../../core/interfaces/movements';
 
 @Component({
-    selector: 'app-add-edit-income-modal',
-    imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective],
-    templateUrl: './add-edit-income-modal.component.html',
-    styleUrl: './add-edit-income-modal.component.scss'
+  selector: 'app-add-edit-income-modal',
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective],
+  templateUrl: './add-edit-income-modal.component.html',
+  styleUrl: './add-edit-income-modal.component.scss'
 })
 export class AddEditIncomeModalComponent implements OnInit {
   @Input() income: FixedIncome | null = null;          // null => crear, no null => editar

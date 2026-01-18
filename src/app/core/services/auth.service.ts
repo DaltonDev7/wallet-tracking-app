@@ -4,7 +4,7 @@ import {
   signInWithPopup,
   signOut,
   UserCredential,
-} from 'firebase/auth';
+} from '@angular/fire/auth';
 
 import { Auth, authState } from '@angular/fire/auth';
 

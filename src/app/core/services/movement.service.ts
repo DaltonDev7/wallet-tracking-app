@@ -12,27 +12,22 @@ import {
   where,
   orderBy,
 } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
-import { authState } from 'rxfire/auth';
-
-import { Observable, map, filter, switchMap, of } from 'rxjs';
+import { Auth, authState, User } from '@angular/fire/auth'; // 👈 Cambia este import
+import { Observable, map, switchMap, of } from 'rxjs';
 import { Movement, MovementCreateInput, MovementUpdateInput } from '../interfaces/movements';
-
 
 @Injectable({ providedIn: 'root' })
 export class MovementsService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
 
-  /** Referencia a la colección de movimientos del usuario */
-
-
   /** Devuelve todos los movimientos del usuario logueado */
   getUserMovements$(): Observable<Movement[]> {
     return authState(this.auth).pipe(
-      filter((user): user is NonNullable<typeof user> => !!user),
-      switchMap((user) => {
-        const colRef = this.movementsCollection(user.uid);
+      switchMap((user: User | null) => {
+        if (!user) return of([]);
+        
+        const colRef = collection(this.firestore, 'users', user.uid, 'movements');
         return collectionData(colRef, { idField: 'id' }) as Observable<any[]>;
       }),
       map((docs) =>
@@ -56,7 +51,7 @@ export class MovementsService {
     const user = this.auth.currentUser;
     if (!user) throw new Error('No hay usuario autenticado');
 
-    const colRef = this.movementsCollection(user.uid);
+    const colRef = collection(this.firestore, 'users', user.uid, 'movements');
     const now = new Date();
 
     await addDoc(colRef, {
@@ -82,7 +77,7 @@ export class MovementsService {
     await updateDoc(docRef, {
       ...changes,
       updatedAt: now,
-    } as any);
+    });
   }
 
   /** Elimina un movimiento */
@@ -94,57 +89,49 @@ export class MovementsService {
     await deleteDoc(docRef);
   }
 
-
-  private movementsCollection(userId: string): CollectionReference {
-    return collection(this.firestore, 'users', userId, 'movements') as CollectionReference;
-  }
-
   /** Movimientos del usuario para un mes/año específicos */
   getUserMovementsByMonth$(monthKey: string): Observable<Movement[]> {
-  // monthKey viene como 'YYYY-MM' desde el <input type="month">
-  if (!monthKey) {
-    return of([]); // necesitas importar of desde 'rxjs'
+    if (!monthKey) {
+      return of([]);
+    }
+
+    const [yearStr, monthStr] = monthKey.split('-');
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+
+    const monthStrPadded = String(month).padStart(2, '0');
+    const start = `${year}-${monthStrPadded}-01`;
+
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const nextMonthStr = String(nextMonth).padStart(2, '0');
+    const end = `${nextYear}-${nextMonthStr}-01`;
+
+    return authState(this.auth).pipe(
+      switchMap((user: User | null) => {
+        if (!user) return of([]);
+        
+        const colRef = collection(this.firestore, 'users', user.uid, 'movements');
+        const qRef = query(
+          colRef,
+          where('date', '>=', start),
+          where('date', '<', end),
+          orderBy('date', 'desc')
+        );
+        return collectionData(qRef, { idField: 'id' }) as Observable<any[]>;
+      }),
+      map((docs) =>
+        docs.map((d) => ({
+          id: d.id,
+          type: d.type,
+          amount: d.amount,
+          date: d.date,
+          categoryId: d.categoryId,
+          description: d.description,
+          createdAt: d.createdAt?.toDate?.() ?? d.createdAt,
+          updatedAt: d.updatedAt?.toDate?.() ?? d.updatedAt,
+        })) as Movement[]
+      )
+    );
   }
-
-  const [yearStr, monthStr] = monthKey.split('-'); // '2025-11' -> ['2025','11']
-  const year = Number(yearStr);
-  const month = Number(monthStr); // 1–12
-
-  const monthStrPadded = String(month).padStart(2, '0');
-  const start = `${year}-${monthStrPadded}-01`; // inclusive
-
-  const nextMonth = month === 12 ? 1 : month + 1;
-  const nextYear = month === 12 ? year + 1 : year;
-  const nextMonthStr = String(nextMonth).padStart(2, '0');
-  const end = `${nextYear}-${nextMonthStr}-01`; // exclusivo
-
-  return authState(this.auth).pipe(
-    filter((user): user is NonNullable<typeof user> => !!user),
-    switchMap((user) => {
-      const colRef = this.movementsCollection(user.uid);
-      const qRef = query(
-        colRef,
-        where('date', '>=', start),
-        where('date', '<', end),
-        orderBy('date', 'desc')
-      );
-      return collectionData(qRef, { idField: 'id' }) as Observable<any[]>;
-    }),
-    map(
-      (docs) =>
-        docs.map(
-          (d) =>
-            ({
-              id: d.id,
-              type: d.type,
-              amount: d.amount,
-              date: d.date,
-              categoryId: d.categoryId,
-              description: d.description,
-            }) as Movement
-        ) as Movement[]
-    )
-  );
-}
-
 }

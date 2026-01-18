@@ -5,8 +5,6 @@ import { RouterOutlet } from '@angular/router';
 import { Category, FixedExpense, Movement, MovementCreateInput, MovementFormValue, MovementView } from '../../core/interfaces/movements';
 import { CreateMovementModalComponent } from '../../modals/create-movement-modal/create-movement-modal.component';
 import { Combobox } from '../../core/interfaces/combobox';
-import { NgChartsModule } from 'ng2-charts';
-import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { MovementsService } from '../../core/services/movement.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CategoryService } from '../../core/services/category.service';
@@ -17,20 +15,20 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
 import { ExpensesService } from '../../core/services/expenses.service';
 
 @Component({
-    selector: 'app-dashboard',
-    imports: [
-        CommonModule,
-        FormsModule,
-        DatePipe,
-        CurrencyPipe,
-        CreateMovementModalComponent,
-        NgChartsModule,
-        ReactiveFormsModule,
-        ConfirmModalComponent
-    ],
-    providers: [DecimalPipe],
-    templateUrl: './dashboard.component.html',
-    styleUrl: './dashboard.component.scss'
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    DatePipe,
+    CurrencyPipe,
+    CreateMovementModalComponent,
+    ReactiveFormsModule,
+    ConfirmModalComponent
+  ],
+  providers: [DecimalPipe],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
 
@@ -87,14 +85,14 @@ export class DashboardComponent implements OnInit {
   ];
 
   // Distribución de gastos por categoría (solo gastos)
-  expenseDoughnutData: ChartConfiguration<'doughnut'>['data'] = {
-    labels: [],
-    datasets: [],
-  };
+  // expenseDoughnutData: ChartConfiguration<'doughnut'>['data'] = {
+  //   labels: [],
+  //   datasets: [],
+  // };
 
-  expenseDoughnutOptions: ChartOptions<'doughnut'> = {
+  // expenseDoughnutOptions: ChartOptions<'doughnut'> = {
 
-  };
+  // };
 
 
   ngOnInit(): void {
@@ -366,17 +364,17 @@ export class DashboardComponent implements OnInit {
 
     // 3) Si no hay ni gastos variables ni fijos → gráfico vacío
     if (!expenses.length && !expensesFixedActive.length) {
-      this.expenseDoughnutData = {
-        labels: ['Sin datos'],
-        datasets: [
-          {
-            data: [1],
-            backgroundColor: ['#E5E7EB'], // gray-200
-            borderWidth: 0,
-          },
-        ],
-      };
-      return;
+      // this.expenseDoughnutData = {
+      //   labels: ['Sin datos'],
+      //   datasets: [
+      //     {
+      //       data: [1],
+      //       backgroundColor: ['#E5E7EB'], // gray-200
+      //       borderWidth: 0,
+      //     },
+      //   ],
+      // };
+      // return;
     }
 
     // 4) Agrupamos por categoría (nombre)
@@ -407,16 +405,16 @@ export class DashboardComponent implements OnInit {
     );
 
     // 7) Asignamos NUEVO objeto para que se refresque la gráfica
-    this.expenseDoughnutData = {
-      labels,
-      datasets: [
-        {
-          data,
-          backgroundColor,
-          borderWidth: 0,
-        },
-      ],
-    };
+    // this.expenseDoughnutData = {
+    //   labels,
+    //   datasets: [
+    //     {
+    //       data,
+    //       backgroundColor,
+    //       borderWidth: 0,
+    //     },
+    //   ],
+    // };
   }
 
   async handleConfirmDelete(): Promise<void> {

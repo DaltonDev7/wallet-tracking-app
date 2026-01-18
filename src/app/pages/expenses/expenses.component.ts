@@ -8,17 +8,18 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
 import { CategoryService } from '../../core/services/category.service';
 
 @Component({
-    selector: 'app-expenses',
-    imports: [CommonModule, FormsModule, AddEditExpensesModalComponent, ConfirmModalComponent],
-    templateUrl: './expenses.component.html',
-    styleUrl: './expenses.component.scss'
+  selector: 'app-expenses',
+  standalone: true,
+  imports: [CommonModule, FormsModule, AddEditExpensesModalComponent, ConfirmModalComponent],
+  templateUrl: './expenses.component.html',
+  styleUrl: './expenses.component.scss'
 })
 export class ExpensesComponent implements OnInit {
 
   // Lista de gastos fijos
   private fixedExpensesService = inject(ExpensesService);
   private categoryServices = inject(CategoryService);
-  
+
   // Resumen
   public activeFixedExpensesCount = 0;
   public totalFixedExpenses = 0;

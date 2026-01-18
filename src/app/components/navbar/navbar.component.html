@@ -1,162 +1,89 @@
-<nav class="border-b bg-white">
-  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-14 items-center justify-between">
+<p-menubar [model]="menuItems()" styleClass="border-bottom bg-white">
 
-      <!-- Logo -->
-      <div class="flex items-center gap-2 cursor-pointer" routerLink="/">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-xs font-semibold text-white">
-          WT
-        </div>
-        <span class="text-lg font-semibold tracking-tight">Wallet Tracking</span>
-      </div>
-
-      <!-- Links desktop -->
-      <div class="hidden items-center gap-6 text-sm md:flex">
-        <a
-          routerLink="/"
-          routerLinkActive="text-slate-900 font-medium"
-          class="text-slate-500 hover:text-slate-900 transition-colors"
-        >
-          Inicio
-        </a>
-
-        <a
-          routerLink="/income"
-          routerLinkActive="text-slate-900 font-medium"
-          class="text-slate-500 hover:text-slate-900 transition-colors"
-        >
-          Ingresos
-        </a>
-
-        <a
-          routerLink="/expenses"
-          routerLinkActive="text-slate-900 font-medium"
-          class="text-slate-500 hover:text-slate-900 transition-colors"
-        >
-          Gastos
-        </a>
-
-        <a
-          routerLink="/categories"
-          routerLinkActive="text-slate-900 font-medium"
-          class="text-slate-500 hover:text-slate-900 transition-colors"
-        >
-          Categorías
-        </a>
-      </div>
-
-      <!-- User menu desktop -->
-      <div class="hidden md:flex items-center gap-3 relative" #userMenu>
-        <!-- Avatar + nombre -->
-        <button
-          (click)="toggleUserMenu()"
-          class="flex items-center gap-2 rounded-full border border-slate-200 px-2 py-1.5 hover:bg-slate-50 transition"
-        >
-          @if (user()?.photoURL) {
-            <img
-              [src]="user()?.photoURL"
-              class="h-7 w-7 rounded-full object-cover"
-              alt="User avatar"
-            />
-          } @else {
-            <div
-              class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700"
-            >
-              {{ user()?.displayName ? user()?.displayName![0].toUpperCase() : 'U' }}
-            </div>
-          }
-
-          <span class="text-sm font-medium text-slate-700">
-            {{ user()?.displayName || 'Usuario' }}
-          </span>
-        </button>
-
-        <!-- Dropdown menu -->
-        @if (isUserMenuOpen()) {
-          <div class="absolute right-0 top-11 w-44 rounded-lg border border-slate-200 bg-white shadow-md py-2">
-            <button
-              (click)="onLogout()"
-              class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-              type="button"
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        }
-      </div>
-
-      <!-- Mobile menu button -->
-      <button
-        (click)="toggleMenu()"
-        class="inline-flex items-center justify-center rounded-md border border-slate-200 p-2 md:hidden"
-        type="button"
-        aria-label="Abrir menú"
-      >
-        <div class="space-y-1">
-          <span class="block h-[2px] w-5 bg-slate-800"></span>
-          <span class="block h-[2px] w-5 bg-slate-800"></span>
-        </div>
-      </button>
+  <ng-template pTemplate="start">
+    <div class="logo" routerLink="/">
+      <div class="logo-badge">WT</div>
+      <span class="logo-text">Wallet Tracking</span>
     </div>
+  </ng-template>
+
+  <ng-template pTemplate="end">
+    <div class="right">
+
+      @if (user()) {
+        <div class="hidden-md-down">
+          <button
+            pButton
+            type="button"
+            class="user-btn"
+            (click)="openUserMenu($event)"
+          >
+            @if (user()?.photoURL) {
+              <p-avatar
+                [image]="user()!.photoURL!"
+                shape="circle">
+              </p-avatar>
+            } @else {
+              <p-avatar
+                [label]="displayInitial()"
+                shape="circle">
+              </p-avatar>
+            }
+
+            <span class="user-name">{{ user()?.displayName || 'Usuario' }}</span>
+            <i class="pi pi-angle-down"></i>
+          </button>
+
+          <p-tieredMenu #userMenu [model]="userItems()" [popup]="true"></p-tieredMenu>
+        </div>
+      }
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-bars"
+        class="mobile-btn hidden-md-up"
+        (click)="toggleMobile()"
+      ></button>
+    </div>
+  </ng-template>
+
+</p-menubar>
+
+<!-- Drawer -->
+<p-drawer
+  [visible]="mobileOpen"
+ 
+  position="right"
+  [dismissible]="true"
+  [blockScroll]="true"
+  styleClass="mobile-drawer"
+>
+  <div class="mobile-nav">
+    <a routerLink="/" (click)="closeMobile()" class="mobile-link">Inicio</a>
+    <a routerLink="/income" (click)="closeMobile()" class="mobile-link">Ingresos</a>
+    <a routerLink="/expenses" (click)="closeMobile()" class="mobile-link">Gastos</a>
+    <a routerLink="/categories" (click)="closeMobile()" class="mobile-link">Categorías</a>
+
+    <hr class="sep" />
+
+    <div class="mobile-user">
+      @if (user()?.photoURL) {
+        <p-avatar [image]="user()!.photoURL!" shape="circle"></p-avatar>
+      } @else {
+        <p-avatar [label]="displayInitial()" shape="circle"></p-avatar>
+      }
+
+      <span class="mobile-name">{{ user()?.displayName || 'Usuario' }}</span>
+    </div>
+
+    <button
+      pButton
+      type="button"
+      icon="pi pi-sign-out"
+      label="Cerrar sesión"
+      class="logout-btn"
+      (click)="onLogout()"
+    ></button>
   </div>
-
-  <!-- Mobile menu -->
-  @if (isMenuOpen()) {
-    <div class="border-t bg-white md:hidden px-4 py-3 space-y-2 text-sm">
-      <!-- Navegación principal -->
-      <a
-        routerLink="/"
-        (click)="closeMenu()"
-        class="block py-1.5 text-slate-700 hover:text-slate-900"
-      >
-        Inicio
-      </a>
-
-      <a
-        routerLink="/income"
-        (click)="closeMenu()"
-        class="block py-1.5 text-slate-700 hover:text-slate-900"
-      >
-        Ingresos
-      </a>
-
-      <a
-        routerLink="/expenses"
-        (click)="closeMenu()"
-        class="block py-1.5 text-slate-700 hover:text-slate-900"
-      >
-        Gastos
-      </a>
-
-      <a
-        routerLink="/categories"
-        (click)="closeMenu()"
-        class="block py-1.5 text-slate-700 hover:text-slate-900"
-      >
-        Categorías
-      </a>
-
-      <hr class="my-2 border-slate-200" />
-
-      <!-- Usuario + logout -->
-      <div class="flex items-center gap-2">
-        <img
-          [src]="user()?.photoURL || 'assets/default-avatar.png'"
-          class="h-7 w-7 rounded-full object-cover"
-          alt="User avatar"
-        />
-        <span class="text-sm font-medium text-slate-700">
-          {{ user()?.displayName || 'Usuario' }}
-        </span>
-      </div>
-
-      <button
-        (click)="onLogout()"
-        class="mt-3 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
-        type="button"
-      >
-        Cerrar sesión
-      </button>
-    </div>
-  }
-</nav>
+</p-drawer>

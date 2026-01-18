@@ -5,9 +5,11 @@ import { AddEditCategoryModalComponent } from '../../modals/add-edit-category-mo
 import { CategoryService } from '../../core/services/category.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.component';
+import { isStandalone } from '@angular/core';
 
 @Component({
     selector: 'app-category',
+    standalone: true,
     imports: [CommonModule, AddEditCategoryModalComponent, ConfirmModalComponent],
     templateUrl: './category.component.html',
     styleUrl: './category.component.scss'

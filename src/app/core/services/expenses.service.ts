@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
 import { collectionData, Firestore } from '@angular/fire/firestore';
-import { collection, addDoc, doc, updateDoc, deleteDoc, orderBy, query, where } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, orderBy, query, where } from '@angular/fire/firestore';
 import { Observable, filter, switchMap, map } from 'rxjs';
 import { FixedExpense } from '../interfaces/movements';
 

@@ -4,10 +4,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'app-sign-in',
-    imports: [ReactiveFormsModule],
-    templateUrl: './sign-in.component.html',
-    styleUrl: './sign-in.component.scss'
+  selector: 'app-sign-in',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './sign-in.component.html',
+  styleUrl: './sign-in.component.scss'
 })
 export class SignInComponent {
   form: FormGroup;
