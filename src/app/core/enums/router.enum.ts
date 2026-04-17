@@ -4,4 +4,5 @@ export enum routesEnum{
     signUp = "signUp",
     income = "income",
     expenses = "expenses",
+    analytics = "analytics",
 }

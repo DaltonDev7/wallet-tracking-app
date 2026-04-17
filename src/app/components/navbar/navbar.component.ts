@@ -1,75 +1,71 @@
-import { Component, ElementRef, HostListener, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { User } from 'firebase/auth';
+import { MenuItem } from 'primeng/api';
+import { AvatarModule } from 'primeng/avatar';
+import { ButtonModule } from 'primeng/button';
+import { MenuModule } from 'primeng/menu';
+
+import { AuthService } from '../../core/services/auth.service';
 import { routesEnum } from '../../core/enums/router.enum';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, AvatarModule, ButtonModule, MenuModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
-   user = signal<User | null>(null);
-
-  // Menú usuario (dropdown)
-  isUserMenuOpen = signal(false);
-
-  // Menú mobile
+  readonly user = signal<User | null>(null);
   readonly isMenuOpen = signal(false);
 
-  // (si lo usas en otro lado)
-  readonly isNewMovementOpen = signal(false);
+  readonly navItems = [
+    { label: 'Inicio', route: '/' },
+    { label: 'Analitica', route: `/${routesEnum.analytics}` },
+    { label: 'Ingresos', route: `/${routesEnum.income}` },
+    { label: 'Gastos', route: `/${routesEnum.expenses}` },
+    { label: 'Categorías', route: `/${routesEnum.category}` }
+  ];
 
-  @ViewChild('userMenu') userMenuRef!: ElementRef;
-
-  constructor(
-    private authServices: AuthService,
-    private router: Router
-  ) {}
+  readonly userMenuItems: MenuItem[] = [
+    {
+      label: 'Cerrar sesión',
+      icon: 'pi pi-sign-out',
+      command: () => void this.onLogout()
+    }
+  ];
 
   ngOnInit(): void {
-    this.authServices.user$.subscribe((u) => {
-      this.user.set(u);
-    });
+    this.authService.user$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.user.set(user);
+      });
   }
 
-  // ====== MENÚ MOBILE ======
+  get userInitial(): string {
+    const displayName = this.user()?.displayName?.trim();
+    const email = this.user()?.email?.trim();
 
-  toggleMenu() {
-    this.isMenuOpen.update(open => !open);
+    return (displayName?.[0] ?? email?.[0] ?? 'U').toUpperCase();
   }
 
-  closeMenu() {
+  toggleMenu(): void {
+    this.isMenuOpen.update((open) => !open);
+  }
+
+  closeMenu(): void {
     this.isMenuOpen.set(false);
   }
 
-  // ====== MENÚ USUARIO (DESKTOP) ======
-
-  toggleUserMenu() {
-    this.isUserMenuOpen.update((v) => !v);
+  async onLogout(): Promise<void> {
+    await this.authService.logout();
+    await this.router.navigate([routesEnum.signIn]);
   }
-
-  async onLogout() {
-    await this.authServices.logout();
-    this.router.navigate([routesEnum.signIn]);
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-
-    if (!this.userMenuRef) return;
-
-    const clickedInside = this.userMenuRef.nativeElement.contains(target);
-
-    if (!clickedInside) {
-      this.isUserMenuOpen.set(false);
-    }
-  }
-
-
 }

@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { DatePickerModule } from 'primeng/datepicker';
+import { Subscription } from 'rxjs';
 import { AddEditExpensesModalComponent } from '../../modals/add-edit-expenses-modal/add-edit-expenses-modal.component';
 import { FixedExpense } from '../../core/interfaces/movements';
 import { ExpensesService } from '../../core/services/expenses.service';
@@ -10,7 +13,7 @@ import { CategoryService } from '../../core/services/category.service';
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddEditExpensesModalComponent, ConfirmModalComponent],
+  imports: [CommonModule, FormsModule, DatePickerModule, AddEditExpensesModalComponent, ConfirmModalComponent],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss'
 })
@@ -19,6 +22,8 @@ export class ExpensesComponent implements OnInit {
   // Lista de gastos fijos
   private fixedExpensesService = inject(ExpensesService);
   private categoryServices = inject(CategoryService);
+  private destroyRef = inject(DestroyRef);
+  private expensesSubscription?: Subscription;
   
   // Resumen
   public activeFixedExpensesCount = 0;
@@ -31,29 +36,38 @@ export class ExpensesComponent implements OnInit {
   public categoriesMap: Record<string, string> = {};
   public fixedExpenses: FixedExpense[] = [];
   public selectedMonthToApply!: string;
+  public selectedMonthDate!: Date;
   public expenseBeingEdited: FixedExpense | null = null;
 
   ngOnInit(): void {
 
     this.selectedMonthToApply = this.getCurrentMonthForInput();
+    this.selectedMonthDate = this.monthKeyToDate(this.selectedMonthToApply);
 
 
-    this.categoryServices.getUserCategories$().subscribe(categories => {
-      this.categoriesMap = categories.reduce((acc, c) => {
-        acc[c.id] = c.name;
-        return acc;
-      }, {} as Record<string, string>);
+    this.categoryServices
+      .getUserCategories$()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(categories => {
+        this.categoriesMap = categories.reduce((acc, c) => {
+          acc[c.id] = c.name;
+          return acc;
+        }, {} as Record<string, string>);
 
-
-      this.onApplyFixedExpensesToMonth()
-    });
+        this.onApplyFixedExpensesToMonth()
+      });
 
 
     this.recalculateSummary();
   }
 
 
-  public onMonthChange() {
+  public onMonthChange(value?: Date | null) {
+    if (value) {
+      this.selectedMonthDate = value;
+      this.selectedMonthToApply = this.toMonthKey(value);
+    }
+
     this.onApplyFixedExpensesToMonth()
   }
 
@@ -133,8 +147,11 @@ export class ExpensesComponent implements OnInit {
 
     if (!this.selectedMonthToApply) return;
 
-    this.fixedExpensesService
+    this.expensesSubscription?.unsubscribe();
+
+    this.expensesSubscription = this.fixedExpensesService
       .getUserFixedExpensesByMonth$(this.selectedMonthToApply)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(expenses => {
         this.fixedExpenses = expenses.map(exp => ({
           ...exp,
@@ -157,6 +174,17 @@ export class ExpensesComponent implements OnInit {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  private monthKeyToDate(monthKey: string): Date {
+    const [year, month] = monthKey.split('-').map(Number);
+    return new Date(year, month - 1, 1);
+  }
+
+  private toMonthKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     return `${year}-${month}`;
   }
 

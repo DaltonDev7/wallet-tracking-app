@@ -1,16 +1,24 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { CategoryComponent } from './pages/category/category.component';
-import { HomeComponent } from './pages/home/home.component';
 import { routesEnum } from './core/enums/router.enum';
 import { authGuard } from './core/guards/auth.guard';
 import { redirectIfAuthenticatedGuard } from './core/guards/redirect-if-authenticated.guard';
 
 export const routes: Routes = [
     {
-        path:'',
-        component: HomeComponent,
+        path: routesEnum.analytics,
         canActivate: [authGuard],
+        loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
+        children: [
+            {
+                path: '',
+                loadComponent: () => import('./pages/analytics/analytics.component').then((m) => m.AnalyticsComponent)
+            }
+        ]
+    },
+    {
+        path:'',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
         loadChildren: () => import('./pages/home/router').then(x => x.routes)
     },
     {

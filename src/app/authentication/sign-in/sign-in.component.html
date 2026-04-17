@@ -1,117 +1,144 @@
-<div class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-    <div class="w-full max-w-md">
-        <!-- Logo / branding -->
-        <div class="mb-6 flex items-center gap-3 justify-center">
-            <div
-                class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-xs font-semibold text-white">
-                WT
-            </div>
-            <div class="flex flex-col">
-                <span class="text-sm font-semibold tracking-tight text-slate-900">
-                    Wallet Tracking
-                </span>
-                <span class="text-[11px] text-slate-500">
-                    Controla tus gastos de forma sencilla.
-                </span>
-            </div>
+<section class="min-h-screen px-4 py-10">
+  <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+    <div class="hidden flex-col gap-6 rounded-[2rem] bg-gradient-to-br from-primary-900 via-primary-800 to-primary-600 p-8 text-white shadow-2xl lg:flex">
+      <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/12 text-lg font-semibold backdrop-blur">
+        WT
+      </div>
+
+      <div class="max-w-lg">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.32em] text-primary-100">
+          Wallet Tracking
+        </p>
+        <h1 class="text-4xl font-semibold leading-tight">
+          Lleva el control de tus finanzas con una experiencia clara y moderna.
+        </h1>
+        <p class="mt-4 text-base leading-7 text-primary-50/90">
+          Organiza ingresos, gastos y categorías en un solo lugar, con métricas rápidas y una vista mensual enfocada en decisiones.
+        </p>
+      </div>
+
+      <div class="mt-auto grid gap-4 md:grid-cols-3">
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+          <p class="text-sm text-primary-100">Dashboard</p>
+          <p class="mt-2 text-xl font-semibold">Mensual</p>
         </div>
-
-        <!-- Card -->
-        <div class="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-            <!-- Header -->
-            <div class="mb-5">
-                <h1 class="text-lg font-semibold text-slate-900">
-                    Inicia sesión
-                </h1>
-                <p class="mt-1 text-xs text-slate-500">
-                    Ingresa con tu correo y contraseña para ver tus movimientos.
-                </p>
-            </div>
-
-            <!-- Form -->
-            <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="space-y-4">
-                <!-- Email -->
-                <div>
-                    <label for="email" class="mb-1 block text-xs font-medium text-slate-600">
-                        Correo electrónico
-                    </label>
-                    <input id="email" type="email" autocomplete="email" formControlName="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
-                   outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
-                        placeholder="tucorreo@ejemplo.com" />
-                    @if (form.get('email')?.invalid && form.get('email')?.touched) {
-                    <p class="mt-1 text-[11px] text-red-500">
-                        Ingresa un correo electrónico válido.
-                    </p>
-                    }
-                </div>
-
-                <!-- Password -->
-                <div>
-                    <label for="password" class="mb-1 block text-xs font-medium text-slate-600">
-                        Contraseña
-                    </label>
-                    <input id="password" type="password" autocomplete="current-password" formControlName="password"
-                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm
-                   outline-none ring-1 ring-transparent focus:border-slate-900 focus:ring-slate-900/5"
-                        placeholder="••••••••" />
-                    @if (form.get('password')?.invalid && form.get('password')?.touched) {
-                    <p class="mt-1 text-[11px] text-red-500">
-                        La contraseña debe tener al menos 6 caracteres.
-                    </p>
-                    }
-                </div>
-
-                <!-- Remember + forgot -->
-                <div class="flex items-center justify-between gap-3 text-xs">
-                    <label class="inline-flex items-center gap-2 text-slate-600">
-                        <input type="checkbox" formControlName="rememberMe" class="h-3.5 w-3.5 rounded border-slate-300 text-slate-900
-                     focus:ring-slate-900/40" />
-                        <span>Recordarme</span>
-                    </label>
-
-                    <button type="button" class="text-xs font-medium text-slate-600 hover:text-slate-900">
-                        Olvidé mi contraseña
-                    </button>
-                </div>
-
-                <!-- Botón -->
-                <div class="pt-2">
-                    <button type="submit" [disabled]="form.invalid || isSubmitting" class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900
-                   px-4 py-2.5 text-sm font-medium text-white shadow-sm
-                   transition hover:bg-slate-800 disabled:cursor-not-allowed
-                   disabled:bg-slate-300 disabled:text-slate-600">
-                        @if (isSubmitting) {
-                        <span>Cargando...</span>
-                        } @else {
-                        <span>Entrar</span>
-                        }
-                    </button>
-                </div>
-            </form>
-
-            <!-- Divider -->
-            <div class="mt-6 flex items-center gap-3">
-                <div class="h-px flex-1 bg-slate-100"></div>
-                <span class="text-[11px] text-slate-400">
-                    O continúa con tu cuenta de Google
-                </span>
-                <div class="h-px flex-1 bg-slate-100"></div>
-            </div>
-
-            <!-- Google Sign in / Sign up -->
-            <div class="mt-4">
-                <button type="button" (click)="signInWithGoogle()" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border
-           border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700
-           shadow-sm transition hover:bg-slate-50">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
-                        class="h-4 w-4" />
-                    <span>Continuar con Google</span>
-                </button>
-
-                <p class="mt-2 text-[11px] text-center text-slate-400">
-                    Inicia sesión o crea tu cuenta al instante.
-                </p>
-            </div>
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+          <p class="text-sm text-primary-100">Categorías</p>
+          <p class="mt-2 text-xl font-semibold">Personalizadas</p>
         </div>
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+          <p class="text-sm text-primary-100">Acceso</p>
+          <p class="mt-2 text-xl font-semibold">Seguro</p>
+        </div>
+      </div>
     </div>
-</div>
+
+    <p-card styleClass="mx-auto w-full max-w-xl rounded-[2rem] border border-surface-200/80 shadow-[0_30px_80px_-48px_rgba(15,23,42,0.55)]">
+      <ng-template pTemplate="header">
+        <div class="flex items-center gap-3 px-8 pt-8 lg:hidden">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-contrast shadow-lg">
+            WT
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-color-emphasis">Wallet Tracking</p>
+            <p class="text-xs text-muted-color">Controla tu dinero con visibilidad mensual.</p>
+          </div>
+        </div>
+      </ng-template>
+
+      <div class="px-2 pb-2 pt-6 sm:px-4">
+        <div class="mb-6">
+          <p class="text-sm font-semibold uppercase tracking-[0.28em] text-primary-500">
+            Acceso
+          </p>
+          <h2 class="mt-2 text-3xl font-semibold text-color-emphasis">
+            Inicia sesión
+          </h2>
+          <p class="mt-2 text-sm leading-6 text-muted-color">
+            Usa tu correo o entra directamente con Google para comenzar a registrar movimientos.
+          </p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <label for="email" class="text-sm font-medium text-color-emphasis">Correo electrónico</label>
+            <input
+              id="email"
+              type="email"
+              autocomplete="email"
+              formControlName="email"
+              pInputText
+              class="w-full"
+              placeholder="tucorreo@ejemplo.com" />
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <small class="text-red-500">Ingresa un correo electrónico válido.</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="password" class="text-sm font-medium text-color-emphasis">Contraseña</label>
+            <p-password
+              inputId="password"
+              formControlName="password"
+              [toggleMask]="true"
+              [feedback]="false"
+              inputStyleClass="w-full"
+              styleClass="w-full" />
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+              <small class="text-red-500">La contraseña debe tener al menos 6 caracteres.</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-3 text-sm text-muted-color sm:flex-row sm:items-center sm:justify-between">
+            <label class="flex items-center gap-2">
+              <p-checkbox formControlName="rememberMe" [binary]="true" inputId="rememberMe" />
+              <span>Recordarme</span>
+            </label>
+
+            <button
+              pButton
+              type="button"
+              label="Olvidé mi contraseña"
+              severity="secondary"
+              variant="text"
+              class="justify-start p-0 sm:justify-center"></button>
+          </div>
+
+        <button
+          pButton
+          type="submit"
+          [disabled]="form.invalid || isSubmitting"
+          [loading]="isSubmitting"
+          label="Entrar"
+          class="w-full"></button>
+        </form>
+
+        <p-divider align="center">
+          <span class="px-2 text-xs uppercase tracking-[0.24em] text-muted-color">
+            o continúa con Google
+          </span>
+        </p-divider>
+
+        <button
+          pButton
+          type="button"
+          severity="contrast"
+          variant="outlined"
+          class="w-full"
+          (click)="signInWithGoogle()">
+          <span class="flex items-center gap-2">
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google"
+              class="h-4 w-4" />
+            <span>Continuar con Google</span>
+          </span>
+        </button>
+
+        <p class="mt-4 text-center text-xs leading-5 text-muted-color">
+          Al continuar, podrás crear o acceder a tu espacio personal de finanzas en segundos.
+        </p>
+      </div>
+    </p-card>
+  </div>
+</section>
