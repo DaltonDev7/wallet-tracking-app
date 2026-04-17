@@ -1,139 +1,149 @@
-import { Component, DestroyRef, EventEmitter, HostListener, inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Category, MovementFormValue, MovementView } from '../../core/interfaces/movements';
 import { CommonModule } from '@angular/common';
-import { NgxMaskDirective, NgxMaskPipe } from 'ngx-mask';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CategoryService } from '../../core/services/category.service';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgxMaskDirective } from 'ngx-mask';
+import { DatePickerModule } from 'primeng/datepicker';
+
 import { Combobox } from '../../core/interfaces/combobox';
-import { MovementsService } from '../../core/services/movement.service';
+import { Category, MovementView } from '../../core/interfaces/movements';
+import { CategoryService } from '../../core/services/category.service';
 
 @Component({
   selector: 'app-create-movement-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective],
+  imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective, DatePickerModule],
   templateUrl: './create-movement-modal.component.html',
   styleUrl: './create-movement-modal.component.scss'
 })
 export class CreateMovementModalComponent implements OnInit, OnChanges {
-
   @Input() open = false;
-  @Output() close = new EventEmitter<void>();
-  @Output() save = new EventEmitter<{
-    name: string;
-    type: 'income' | 'expense';
-    color: string;
-    active: boolean;
-  }>();
-  // 🔹 cuando es editar, aquí viene el movimiento
   @Input() initialMovement: MovementView | null = null;
 
-  private fb = inject(FormBuilder);
-  private categoriesService = inject(CategoryService);
-  private destroyRef = inject(DestroyRef);
+  @Output() close = new EventEmitter<void>();
+  @Output() save = new EventEmitter<{
+    id?: string | null;
+    type: 'income' | 'expense';
+    amount: string | number | null;
+    date: string;
+    category: string;
+    description?: string;
+  }>();
 
-  form: FormGroup;
+  private readonly fb = inject(FormBuilder);
+  private readonly categoriesService = inject(CategoryService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly form: FormGroup = this.fb.group({
+    type: ['expense', Validators.required],
+    amount: [null, [Validators.required, Validators.min(1)]],
+    date: [new Date(), Validators.required],
+    category: ['', Validators.required],
+    description: ['']
+  });
+
   private allCategories: Category[] = [];
-
-  /** Lista lista para el combobox */
   categories: Combobox<string>[] = [];
-
-  constructor(private movementsService: MovementsService) {
-    this.form = this.fb.group({
-      type: ['expense', Validators.required],
-      amount: [null, [Validators.required, Validators.min(1)]],
-      date: [new Date().toISOString().substring(0, 10), Validators.required],
-      category: ['', Validators.required],
-      description: [''],
-    });
-  }
 
   get isEditMode(): boolean {
     return !!this.initialMovement;
   }
 
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['initialMovement']) {
-      if (this.initialMovement) {
-        // 🔹 MODO EDITAR: llenar el formulario con el movimiento
-        this.form.patchValue({
-          type: this.initialMovement.type,
-          amount: this.initialMovement.amount,        // si usas mask, aquí ya se verá
-          date: this.initialMovement.date,
-          category: this.initialMovement.categoryId,  // muy importante
-          description: this.initialMovement.description || '',
-        });
-      } else {
-        // 🔹 MODO NUEVO: reset a valores por defecto
-        this.form.reset({
-          type: 'expense',
-          amount: null,
-          date: new Date().toISOString().substring(0, 10),
-          category: '',
-          description: '',
-        });
-      }
-    }
-  }
-
   ngOnInit(): void {
-    // 1. Suscribirse a las categorías del usuario
     this.categoriesService
       .getUserCategories$()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((cats) => {
-
-        this.allCategories = cats;
+      .subscribe((categories) => {
+        this.allCategories = categories;
         this.updateCategoryOptions();
       });
 
-    // 2. Escuchar cambios en el tipo (income/expense) para filtrar categorías
     this.form
       .get('type')!
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.updateCategoryOptions();
-        // si cambias el tipo, resetear la categoría seleccionada
         this.form.get('category')!.setValue('');
       });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['initialMovement']) {
+      return;
+    }
+
+    if (this.initialMovement) {
+      this.form.patchValue({
+        type: this.initialMovement.type,
+        amount: this.initialMovement.amount,
+        date: this.dateKeyToDate(this.initialMovement.date),
+        category: this.initialMovement.categoryId,
+        description: this.initialMovement.description || ''
+      });
+      return;
+    }
+
+    this.form.reset({
+      type: 'expense',
+      amount: null,
+      date: new Date(),
+      category: '',
+      description: ''
+    });
+  }
+
+  handleClose(): void {
+    this.form.reset();
+    this.close.emit();
+  }
+
+  handleSubmit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.save.emit({
+      ...this.form.getRawValue(),
+      date: this.toDateKey(this.form.get('date')?.value),
+      id: this.initialMovement?.id ?? null
+    });
+
+    if (!this.isEditMode) {
+      this.form.reset({
+        type: 'expense',
+        amount: null,
+        date: new Date(),
+        category: '',
+        description: ''
+      });
+    }
+  }
 
   private updateCategoryOptions(): void {
     const currentType = this.form.get('type')!.value as 'income' | 'expense';
 
     this.categories = this.allCategories
-      .filter((c) => c.type === currentType)
-      .map((c) => ({
-        label: c.name, // lo que se muestra
-        value: c.id,   // lo que se guarda en el form
+      .filter((category) => category.type === currentType)
+      .map((category) => ({
+        label: category.name,
+        value: category.id
       }));
   }
 
-  handleClose() {
-    this.form.reset()
-    this.close.emit();
+  private dateKeyToDate(dateKey: string): Date {
+    const [year, month, day] = dateKey.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 
-  handleSubmit() {
-    if (this.form.invalid) return;
-
-    const value = this.form.value;
-
-    const payload = {
-      ...value,
-      id: this.initialMovement?.id ?? null, // 👈 clave para saber si editar o crear
-    };
-
-    this.save.emit(payload);
-
-    // si quieres que al cerrar después de crear vuelva limpio:
-    if (!this.isEditMode) {
-      this.form.reset({
-        type: 'expense',
-        date: new Date().toISOString().substring(0, 10),
-      });
+  private toDateKey(value: Date | string): string {
+    if (value instanceof Date) {
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
+
+    return value;
   }
 }

@@ -1,19 +1,18 @@
 import { inject, Injectable } from '@angular/core';
 import {
-  Firestore,
+  addDoc,
   CollectionReference,
   collection,
   collectionData,
-  addDoc,
-  doc,
-  updateDoc,
   deleteDoc,
+  doc,
+  Firestore,
   query,
-  where,
   orderBy,
+  updateDoc,
+  where,
 } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
-import { authState } from 'rxfire/auth';
+import { Auth, authState } from '@angular/fire/auth';
 
 import { Observable, map, filter, switchMap, of } from 'rxjs';
 import { Movement, MovementCreateInput, MovementUpdateInput } from '../interfaces/movements';

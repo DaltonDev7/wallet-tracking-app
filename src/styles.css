@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+@import "primeicons/primeicons.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  font-family: "Inter", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--p-primary-100) 72%, white) 0%, transparent 38%),
+    linear-gradient(180deg, var(--p-surface-50) 0%, var(--p-surface-100) 100%);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--p-text-color);
+  background: transparent;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.page-shell {
+  width: 100%;
+  max-width: 1120px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.section-card {
+  border: 1px solid var(--p-content-border-color);
+  background: color-mix(in srgb, var(--p-surface-0) 92%, white);
+  border-radius: 1.25rem;
+  box-shadow: 0 16px 45px -28px color-mix(in srgb, var(--p-primary-900) 18%, transparent);
+}
+
+.responsive-table {
+  table-layout: auto;
+}
+
+.responsive-table th,
+.responsive-table td {
+  white-space: nowrap;
+}
+
+.responsive-table td:nth-child(3),
+.responsive-table td[data-label="Notas"],
+.responsive-table td[data-label="Descripción"] {
+  white-space: normal;
+  min-width: 12rem;
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+
+  .responsive-table {
+    min-width: 0 !important;
+    border-collapse: separate;
+    border-spacing: 0 0.75rem;
+  }
+
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table tbody {
+    padding: 0.25rem;
+  }
+
+  .responsive-table tr {
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 0.875rem;
+    background: var(--p-surface-0);
+    box-shadow: 0 10px 28px -24px color-mix(in srgb, var(--p-primary-900) 28%, transparent);
+    overflow: hidden;
+  }
+
+  .responsive-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0 !important;
+    padding: 0.75rem 1rem !important;
+    text-align: right !important;
+    white-space: normal;
+  }
+
+  .responsive-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--p-text-muted-color);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .responsive-table td > * {
+    min-width: 0;
+  }
+}

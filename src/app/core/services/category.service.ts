@@ -1,19 +1,18 @@
 import { inject, Injectable } from '@angular/core';
 import {
-  Firestore,
+  addDoc,
+  CollectionReference,
   collection,
   collectionData,
-  addDoc,
-  doc,
-  updateDoc,
   deleteDoc,
-  CollectionReference,
+  doc,
+  Firestore,
+  updateDoc,
 } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
+import { Auth, authState } from '@angular/fire/auth';
 
-import { authState } from 'rxfire/auth';
 import { filter, switchMap, map } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Category } from '../interfaces/movements';
 
 @Injectable({ providedIn: 'root' })

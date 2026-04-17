@@ -2,12 +2,13 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NgxMaskDirective } from 'ngx-mask';
+import { DatePickerModule } from 'primeng/datepicker';
 import { FixedIncome } from '../../core/interfaces/movements';
 
 @Component({
   selector: 'app-add-edit-income-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective],
+  imports: [ReactiveFormsModule, CommonModule, NgxMaskDirective, DatePickerModule],
   templateUrl: './add-edit-income-modal.component.html',
   styleUrl: './add-edit-income-modal.component.scss'
 })
@@ -31,7 +32,7 @@ export class AddEditIncomeModalComponent implements OnInit {
       active: [this.income?.active ?? true],
       notes: [this.income?.notes ?? ''],
       startDate: [
-        this.income?.startDate ?? this.getCurrentYearMonth(),
+        this.monthKeyToDate(this.income?.startDate ?? this.getCurrentYearMonth()),
         [Validators.required],
       ],
     });
@@ -64,7 +65,7 @@ export class AddEditIncomeModalComponent implements OnInit {
       amount: Number(raw.amount),
       active: raw.active,
       notes: raw.notes?.trim() || '',
-      startDate: raw.startDate,
+      startDate: this.toMonthKey(raw.startDate),
       // endDate: raw.endDate,
     };
 
@@ -75,6 +76,22 @@ export class AddEditIncomeModalComponent implements OnInit {
   hasError(controlName: string, error: string): boolean {
     const ctrl = this.form.get(controlName);
     return !!ctrl && ctrl.touched && ctrl.hasError(error);
+  }
+
+  private monthKeyToDate(monthKey: string): Date {
+    const normalized = monthKey.length === 7 ? monthKey : monthKey.slice(0, 7);
+    const [year, month] = normalized.split('-').map(Number);
+    return new Date(year, month - 1, 1);
+  }
+
+  private toMonthKey(value: Date | string): string {
+    if (value instanceof Date) {
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      return `${year}-${month}`;
+    }
+
+    return value.length === 7 ? value : value.slice(0, 7);
   }
 
 }

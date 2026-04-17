@@ -1,6 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
+import { Subscription } from 'rxjs';
 import { FixedIncome } from '../../core/interfaces/movements';
 import { AddEditIncomeModalComponent } from '../../modals/add-edit-income-modal/add-edit-income-modal.component';
 import { IncomesService } from '../../core/services/incomes.service';
@@ -9,7 +13,7 @@ import { ConfirmModalComponent } from '../../modals/confirm-modal/confirm-modal.
 @Component({
   selector: 'app-income',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddEditIncomeModalComponent, ConfirmModalComponent],
+  imports: [CommonModule, FormsModule, ButtonModule, DatePickerModule, AddEditIncomeModalComponent, ConfirmModalComponent],
   templateUrl: './income.component.html',
   styleUrl: './income.component.scss'
 })
@@ -17,6 +21,8 @@ export class IncomeComponent implements OnInit {
 
   //services
   private fixedIncomeService = inject(IncomesService);
+  private destroyRef = inject(DestroyRef);
+  private incomesSubscription?: Subscription;
 
   // resumen
   public activeFixedIncomesCount = 0;
@@ -31,24 +37,32 @@ export class IncomeComponent implements OnInit {
   public incomePendingDelete: FixedIncome | null = null;
 
   public selectedMonthToApply!: string;
+  public selectedMonthDate!: Date;
 
   public fixedIncomes: FixedIncome[] = [];
 
 
   ngOnInit(): void {
     this.selectedMonthToApply = this.getCurrentMonth();
+    this.selectedMonthDate = this.monthKeyToDate(this.selectedMonthToApply);
     this.loadIncomesForMonth();
   }
 
-  onMonthChange(): void {
+  onMonthChange(value?: Date | null): void {
+    if (value) {
+      this.selectedMonthDate = value;
+      this.selectedMonthToApply = this.toMonthKey(value);
+    }
 
     this.loadIncomesForMonth();
   }
 
   private loadIncomesForMonth(): void {
+    this.incomesSubscription?.unsubscribe();
 
-    this.fixedIncomeService
+    this.incomesSubscription = this.fixedIncomeService
       .getUserFixedIncomesByMonth$(this.selectedMonthToApply)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((incomes) => {
         this.fixedIncomes = incomes;
         this.recalculateSummary();
@@ -126,6 +140,17 @@ export class IncomeComponent implements OnInit {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  private monthKeyToDate(monthKey: string): Date {
+    const [year, month] = monthKey.split('-').map(Number);
+    return new Date(year, month - 1, 1);
+  }
+
+  private toMonthKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     return `${year}-${month}`;
   }
 }

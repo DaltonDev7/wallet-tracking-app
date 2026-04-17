@@ -1,29 +1,25 @@
 import { Routes } from "@angular/router";
-import { DashboardComponent } from "../dashboard/dashboard.component";
-import { CategoryComponent } from "../category/category.component";
 import { routesEnum } from "../../core/enums/router.enum";
-import { IncomeComponent } from "../income/income.component";
-import { AddEditExpensesModalComponent } from "../../modals/add-edit-expenses-modal/add-edit-expenses-modal.component";
-import { ExpensesComponent } from "../expenses/expenses.component";
 
 export const routes: Routes = [
     {
         path:'',
-        component: DashboardComponent
+        loadComponent: () => import('../dashboard/dashboard.component').then((m) => m.DashboardComponent)
     },
     {
         path: routesEnum.category,
-        component: CategoryComponent
+        loadComponent: () => import('../category/category.component').then((m) => m.CategoryComponent)
     },
     {
         path: routesEnum.income,
-        component: IncomeComponent
+        loadComponent: () => import('../income/income.component').then((m) => m.IncomeComponent)
     },
     {
         path: routesEnum.expenses,
-        component: ExpensesComponent
+        loadComponent: () => import('../expenses/expenses.component').then((m) => m.ExpensesComponent)
     },
-
-
-
+    {
+        path: routesEnum.analytics,
+        loadComponent: () => import('../analytics/analytics.component').then((m) => m.AnalyticsComponent)
+    },
 ];
